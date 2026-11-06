@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+require('../js/lecture.js');
+require('../js/core.js');
+const core=globalThis.SyllaCore;
+const notes=`[[Page 1]]\nPolymorphism\n● Polymorphism means that one operation may behave differently with different kinds of objects.\n\n[[Page 2]]\nEncapsulation\n● Encapsulation allows a user to work with an object without knowing its internal implementation.\n\n[[Page 3]]\nObject variables\n● Object variables are owned by the individual object and each instance has its own values.\n\n[[Page 4]]\nClasses\nclass Example:\n  def run(self):\n    return 1`;
+const q=core.parseMaterial(notes,'course','topic','source');
+assert(q.length>=3,'ordinary slides should produce reviewable recall prompts');
+assert(q.every(x=>x.type==='short'&&x.origin==='source-recall'),'raw PDF text yields transparently self-graded cards');
+assert(q.every(x=>/Page \d+/.test(x.sourceExcerpt)),'question must cite its original PDF page');
+assert(q.some(x=>x.sourcePage===1&&x.answer.includes('Polymorphism')));
+assert(q.every(x=>!x.answer.includes('class Example')),'code listing must not become a nonsensical recall question');
+const structure=core.parseMaterial('DNS :: Resolves hostnames.\nDHCP :: Assigns IPs.\nTCP :: Reliable stream.\nUDP :: Datagrams.', 'course','topic','source');
+assert(structure.filter(q=>q.type==='mcq').length===4,'structured terms retain automatic grading');
+console.log('Lecture recall tests passed: grounded page references, no invented auto-grading, structured term support.');
