@@ -20,12 +20,14 @@
 
 /* Guided Study: independent source-grounded learning rounds */
 .guide-page{max-width:1100px;margin:0 auto}.guide-page>h1{font-size:clamp(30px,4vw,45px);letter-spacing:-.045em;margin:8px 0 10px;line-height:1.15}.guide-lead{font-size:16px;color:var(--muted);max-width:720px;margin:0 0 25px}.guide-rounds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:24px 0 26px}.guide-round{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:17px 14px;min-height:135px;display:flex;flex-direction:column;gap:6px}.guide-round span{color:#608a58;font-weight:900;letter-spacing:1px}.guide-round strong{font-size:15px}.guide-round small{color:var(--muted);font-size:12px;line-height:1.4}.guide-select{max-width:700px;margin-bottom:28px}.guide-select .btn{margin-top:8px}.guide-history{margin-top:30px}.guide-history-row{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px 19px;border-bottom:1px solid var(--line);background:var(--surface)}.guide-history-row:first-of-type{border-radius:14px 14px 0 0}.guide-history-row:last-of-type{border-radius:0 0 14px 14px}.guide-history-row p{margin:4px 0 0;color:var(--muted);font-size:12px}.guide-breadcrumb{display:flex;align-items:center;gap:18px;margin-bottom:24px;color:var(--muted);font-size:12px;min-width:0}.guide-breadcrumb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.guide-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.guide-step{display:flex;align-items:center;gap:6px;color:#829096;font-size:12px;font-weight:750;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px}.guide-step span{display:grid;place-items:center;flex:none;border-radius:100%;width:22px;height:22px;background:#eef1ec;color:#5b7174;font-size:11px}.guide-step.current{color:var(--ink);border-color:#87ad7c;background:#e8f5df}.guide-step.complete{color:#376b40;background:#f2f8ee}.guide-step.complete span{background:#b8f28b;color:#172433}.guide-progress{margin:13px 0 21px}.guide-session-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.guide-session-head h1{font-size:32px;letter-spacing:-1.2px;margin:5px 0}.guide-session-head p{margin:0;color:var(--muted)}.guide-lesson{max-width:820px;margin:0 auto;padding:clamp(19px,4vw,36px)}.guide-lesson h2{font-size:24px;line-height:1.3;margin:15px 0}.guide-lesson>.btn,.guide-reference+.btn{margin-top:17px}.guide-quote{margin:18px 0 20px;background:#f5f9ee;border-left:4px solid #8ebf6f;padding:20px 22px;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:0 10px 10px 0}.guide-code{padding:19px;background:#172433;color:#e5f8df;white-space:pre-wrap;word-break:break-word;overflow:auto;border-radius:12px;font-size:13px;line-height:1.6}.guide-reference{margin:18px 0;padding:20px;background:#f5f8f5;border:1px solid #dce9d5;border-radius:13px;overflow-wrap:anywhere}.guide-reference pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:13px;line-height:1.65;max-height:230px;overflow:auto}.guide-reference details{margin-top:13px}.guide-reference summary{cursor:pointer;font-weight:800}.guide-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.guide-report{margin:20px 0}.guide-weak p{border-bottom:1px solid var(--line);padding-bottom:10px}.guide-lesson .confidence-row{margin:13px 0 22px}.guide-lesson textarea{min-height:130px}.guide-lesson .answer-option{width:100%;text-align:left}.guide-lesson .tag{display:inline-flex}@media(max-width:900px){.guide-rounds{grid-template-columns:repeat(3,minmax(0,1fr))}.guide-round{min-height:95px}.guide-steps small{font-size:10px}}@media(max-width:760px){.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.mobile-nav .mob-link{font-size:9px}.mobile-nav .mob-link .icon{width:18px;height:18px}.guide-rounds{grid-template-columns:repeat(2,minmax(0,1fr))}.guide-step{flex-direction:column;gap:3px;text-align:center;font-size:10px;padding:7px 2px}.guide-step span{width:21px;height:21px}.guide-breadcrumb{margin-bottom:15px}.guide-session-head h1{font-size:27px}.guide-lesson h2{font-size:21px}.guide-history-row{padding:13px;align-items:flex-start}.guide-history-row .btn{white-space:nowrap}}
+/* V2.3 — persisted study reflections and learning journal */
+.guide-reflection{margin-top:22px;margin-bottom:18px}.guide-reflection textarea{width:100%;min-height:104px;resize:vertical}.guide-journal{margin-top:22px;padding:24px}.guide-journal .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}.guide-journal h2{font-size:19px;margin:0}.guide-answer-entry{border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden;background:#fff}.guide-answer-entry summary{cursor:pointer;display:flex;gap:15px;align-items:center;justify-content:space-between;padding:13px 16px}.guide-answer-entry summary strong{font-size:13px;color:var(--ink)}.guide-answer-entry summary span{font-size:12px;color:var(--muted);white-space:nowrap;max-width:55%;overflow:hidden;text-overflow:ellipsis}.guide-answer-entry[open] summary{border-bottom:1px solid var(--line);background:#f8fbf3}.guide-answer-prompt{padding:12px 16px 0;font-size:13px;color:var(--muted);margin:0}.guide-answer-text{padding:12px 16px 15px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;background:white;border:0;font:inherit;line-height:1.65;max-height:none}.guide-journal .hint{font-size:12px}@media(max-width:600px){.guide-journal{padding:16px}.guide-answer-entry summary{align-items:flex-start;flex-direction:column;gap:3px}.guide-answer-entry summary span{max-width:100%}}
 
 </style>
-  
-  
-  
-  
+
+
+
+
 </head>
 <body>
   <div id="app">
@@ -130,7 +132,7 @@
         if(concepts.length>=4){
           concepts.slice(0,Math.min(8,32-result.length)).forEach(function(entry){
             var words=shuffled(concepts.filter(function(x){return x.term!==entry.term;}).map(function(x){return x.term;})).slice(0,3);
-            var regex=new RegExp('^((?:the|a|an)\\s+)?'+entry.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+            var regex=new RegExp('^((?:the|a|an)\\s+)?'+entry.term.replace(/[.*+?^${}()|[\]\\]/g,'\\</body>')+'\\b','i');
             var cloze=entry.item.answer.replace(regex,function(full,article){return (article||'')+'_____';});
             if(cloze===entry.item.answer)return;
             result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'mcq',
@@ -200,7 +202,6 @@
     parseMaterial:parseMaterial,addDemo:addDemo,removeDemo:removeDemo,deleteCourse:deleteCourse,deleteQuestion:deleteQuestion,
     shuffled:shuffled,addAttempt:addAttempt};
 })(globalThis);
-
 </script>
 <script>
 /* Source-grounded lecture extraction and deterministic recall prompts. No AI or uploads to a server. */
@@ -314,7 +315,6 @@
   }
   root.SyllaLecture={extractPdf:extractPdf,recallCandidates:recallCandidates};
 })(globalThis);
-
 </script>
 <script>
 /* Syllasprint Guided Study: source-linked, honest five-round study sessions. */
@@ -329,6 +329,7 @@
   ];
   var ctx;
   var draft = {text:'', confidence:''};
+  var draftIdentity = '';
   function api(){return ctx;}
   function data(){return api().getState();}
   function esc(x){return api().esc(x);}
@@ -378,11 +379,40 @@
     return [stage];
   }
   function save(){api().persist();}
-  function resetDraft(){draft={text:'',confidence:''};}
+
+  function resetDraft(){draft={text:'',confidence:''};draftIdentity='';}
+  function draftKey(s){return s.round+':'+s.index;}
+  function hydrateDraft(s){
+    var identity=s.id+':'+draftKey(s);
+    if(draftIdentity!==identity){
+      var existing=(s.drafts||{})[draftKey(s)]||{};
+      draft={text:typeof existing.text==='string'?existing.text:'',confidence:typeof existing.confidence==='string'?existing.confidence:''};
+      draftIdentity=identity;
+    }
+  }
+  function saveDraft(s){
+    if(!s||s.completedAt||s.feedback)return;
+    s.drafts=s.drafts||{};
+    s.drafts[draftKey(s)]={text:draft.text,confidence:draft.confidence,updatedAt:new Date().toISOString()};
+    save();
+  }
+  function studyJournal(s){
+    var records=s.records||[];
+    if(!records.length)return '';
+    return '<section class="card guide-journal"><div class="section-head"><h2>My saved answers</h2><span class="hint">'+records.length+' responses recorded</span></div>'+records.map(function(r,i){
+      var q=r.questionId?data().questions.find(function(x){return x.id===r.questionId;}):null;
+      var stage=r.stage||({understand:'Understand',apply:'Apply',debug:'Debug / test'}[r.kind]||'Practice');
+      var label=stage==='recall'?'Active recall':stage==='revise'?'Revision':stage.charAt(0).toUpperCase()+stage.slice(1);
+      var prompt=r.prompt||(q&&q.prompt)||(r.kind==='understand'?'Explain the source passage':r.kind==='apply'?'Explain a real-world use':'Reason through the source example');
+      var verdict=typeof r.correct==='boolean'?(r.correct?'Got it':'Needs work'):'Reflection';
+      var page=r.sourcePage||(q&&q.sourcePage);
+      return '<details class="guide-answer-entry" '+(i===records.length-1?'open':'')+'><summary><strong>'+esc(label)+' · '+esc(verdict)+'</strong><span>'+esc((r.response||'').slice(0,80))+'</span></summary><p class="guide-answer-prompt">'+esc(prompt)+(page?' · page '+esc(page):'')+'</p><pre class="guide-answer-text">'+esc(r.response||'(No written response)')+'</pre></details>';
+    }).join('')+'</section>';
+  }
   function sessionScore(s){
     var answers=(s.records||[]).filter(function(r){return r.kind==='question';}),auto=answers.filter(function(r){return !r.selfGraded;});
     var manual=(s.records||[]).filter(function(r){return r.selfGraded;});
-    return {autoTotal:auto.length,autoCorrect:auto.filter(function(r){return r.correct;}).length,manualTotal:manual.length,manualCorrect:manual.filter(function(r){return r.correct;}).length,needs:(s.records||[]).filter(function(r){return !r.correct;}).length};
+    return {autoTotal:auto.length,autoCorrect:auto.filter(function(r){return r.correct;}).length,manualTotal:manual.length,manualCorrect:manual.filter(function(r){return r.correct;}).length,needs:(s.records||[]).filter(function(r){return typeof r.correct==='boolean' && !r.correct;}).length};
   }
   function renderHome(){
     var u=api().getUI(),cs=courses(),chosen=cs.find(function(c){return c.id===u.guideCourseId;})||cs[0], ms=chosen?materials(chosen.id):[];
@@ -416,19 +446,19 @@
       btn('guide-check','Compare with source '+ico('arrow'),'btn-mint','id="guide-check" '+(draft.text.trim().length<5?'disabled':'')));
   }
   function renderSession(){
-    var s=current();if(!s)return renderHome();if(s.completedAt)return renderReport(s);
+    var s=current();if(!s)return renderHome();if(s.completedAt)return renderReport(s);hydrateDraft(s);
     var itemList=items(s),round=rounds[s.round],item=itemList[s.index],max=Math.max(1,itemList.length);
-    var body=round.id==='understand'?'<span class="tag">Original source passage · '+(s.index+1)+'/'+max+'</span><h2>Read, then explain it aloud.</h2><p>Before proceeding, summarize this in your own words. You can open the original lecture if you need more context.</p><blockquote class="guide-quote">'+esc(item?.text||'No source passage available')+'</blockquote>'+(item?.page?'<p class="hint">Source: page '+esc(item.page)+'</p>':'')+btn('guide-next','I understand — next '+ico('arrow'),'btn-mint'):
+    var body=round.id==='understand'?'<span class="tag">Original source passage · '+(s.index+1)+'/'+max+'</span><h2>Read, then explain it aloud.</h2><p>Before proceeding, summarize this in your own words. You can open the original lecture if you need more context.</p><blockquote class="guide-quote">'+esc(item?.text||'No source passage available')+'</blockquote>'+(item?.page?'<p class="hint">Source: page '+esc(item.page)+'</p>':'')+'<label class="field guide-reflection"><span>My explanation (optional — saved automatically)</span><textarea id="guide-answer" rows="4" placeholder="Explain the idea in your own words. This response will appear in your study journal.">'+esc(draft.text)+'</textarea></label>'+btn('guide-next','Continue to next '+ico('arrow'),'btn-mint'):
       round.id==='recall'||round.id==='revise'?renderQuestion(s,item):renderLab(s,round.id);
     var m=sourceFor(s),progress=Math.round((s.round+s.index/max)/rounds.length*100);
-    return '<div class="guide-page"><div class="guide-breadcrumb">'+btn('guide-home',ico('back')+' Guided Study','btn-light btn-sm')+'<span>'+esc(m?m.title:'Lecture')+'</span></div><div class="guide-steps">'+rounds.map(function(r,i){return '<div class="guide-step '+(i===s.round?'current':i<s.round?'complete':'')+'"><span>'+(i<s.round?'✓':i+1)+'</span><small>'+esc(r.label)+'</small></div>';}).join('')+'</div><div class="quiz-progress guide-progress"><div style="width:'+progress+'%"></div></div><div class="guide-session-head"><div><div class="eyebrow">ROUND '+(s.round+1)+' OF 5 · STEP '+(s.index+1)+' / '+max+'</div><h1>'+esc(round.label)+'</h1><p>'+esc(round.caption)+'</p></div><span class="tag">Progress saved</span></div><section class="card guide-lesson">'+body+'</section><p class="hint" style="text-align:center">Source-grounded prompts; no AI grading or code execution. Your choices and progress are saved in this browser.</p></div>';
+    return '<div class="guide-page"><div class="guide-breadcrumb">'+btn('guide-home',ico('back')+' Guided Study','btn-light btn-sm')+'<span>'+esc(m?m.title:'Lecture')+'</span></div><div class="guide-steps">'+rounds.map(function(r,i){return '<div class="guide-step '+(i===s.round?'current':i<s.round?'complete':'')+'"><span>'+(i<s.round?'✓':i+1)+'</span><small>'+esc(r.label)+'</small></div>';}).join('')+'</div><div class="quiz-progress guide-progress"><div style="width:'+progress+'%"></div></div><div class="guide-session-head"><div><div class="eyebrow">ROUND '+(s.round+1)+' OF 5 · STEP '+(s.index+1)+' / '+max+'</div><h1>'+esc(round.label)+'</h1><p>'+esc(round.caption)+'</p></div><span class="tag">Answers &amp; progress saved</span></div><section class="card guide-lesson">'+body+'</section>'+studyJournal(s)+'<p class="hint" style="text-align:center">Source-grounded prompts; no AI grading or code execution. Your written answers, drafts and progress are saved in this browser. Export a JSON backup to keep them.</p></div>';
   }
   function renderReport(s){
     var sc=sessionScore(s),m=sourceFor(s),questions=(s.records||[]).filter(function(r){return r.kind==='question';});
     var weakness=questions.filter(function(r){return !r.correct;}).map(function(r){return data().questions.find(function(q){return q.id===r.questionId;});}).filter(Boolean);
     return '<div class="guide-page"><div class="eyebrow">Guided lesson complete</div><h1>You finished the study path.</h1><p class="guide-lead">'+esc(m?m.title:'Lecture')+' · Your recorded results, not a predicted exam grade.</p><div class="stats-grid">'+[
       ['Auto-graded',''+sc.autoCorrect+' / '+sc.autoTotal,'Question checks'],['Self-graded',''+sc.manualCorrect+' / '+sc.manualTotal,'Your own assessments'],['To review',''+sc.needs,'Answers marked needs work'],['Stages','5 / 5','Guided rounds completed']
-    ].map(function(x){return '<div class="stat"><div class="stat-label">'+esc(x[0])+'</div><div class="stat-number">'+esc(x[1])+'</div><div class="stat-foot">'+esc(x[2])+'</div></div>';}).join('')+'</div><section class="card guide-report"><h2>Revision priorities</h2>'+(weakness.length?'<div class="guide-weak">'+weakness.slice(0,5).map(function(q){return '<p>• '+esc(q.prompt)+'</p>';}).join('')+'</div>':'<p>No missed quiz questions in this session. Continue to revisit other material over time.</p>')+'<p class="hint">Your quiz responses also contribute to Syllasprint’s Weak Spots tracker. Open-ended exercises are explicitly self-graded.</p><div class="guide-actions">'+btn('guide-restart','Study this lecture again','btn-mint','data-id="'+esc(s.sourceId)+'"')+btn('guide-home','Choose another lecture','btn-light')+btn('navigate','Weak Spots '+ico('arrow'),'btn-light','data-id="weak"')+'</div></section></div>';
+    ].map(function(x){return '<div class="stat"><div class="stat-label">'+esc(x[0])+'</div><div class="stat-number">'+esc(x[1])+'</div><div class="stat-foot">'+esc(x[2])+'</div></div>';}).join('')+'</div><section class="card guide-report"><h2>Revision priorities</h2>'+(weakness.length?'<div class="guide-weak">'+weakness.slice(0,5).map(function(q){return '<p>• '+esc(q.prompt)+'</p>';}).join('')+'</div>':'<p>No missed quiz questions in this session. Continue to revisit other material over time.</p>')+'<p class="hint">Your quiz responses also contribute to Syllasprint’s Weak Spots tracker. Open-ended exercises are explicitly self-graded.</p><div class="guide-actions">'+btn('guide-restart','Study this lecture again','btn-mint','data-id="'+esc(s.sourceId)+'"')+btn('guide-home','Choose another lecture','btn-light')+btn('navigate','Weak Spots '+ico('arrow'),'btn-light','data-id="weak"')+'</div></section>'+studyJournal(s)+'</div>';
   }
   function start(materialId){
     var m=data().materials.find(function(m){return m.id===materialId;});if(!m){api().toast('Choose a lecture first.',true);return;}
@@ -445,17 +475,17 @@
   }
   function record(s,q,correct,selfGraded,confidence,response){
     if(q)api().C.addAttempt(data(),s.id,q,response,confidence,correct);
-    s.records.push({kind:q?'question':s.round===2?'apply':'debug',questionId:q?q.id:null,correct:correct,selfGraded:selfGraded,confidence:confidence,response:response,at:new Date().toISOString()});
+    s.records.push({kind:q?'question':s.round===2?'apply':'debug',stage:rounds[s.round].id,step:s.index,questionId:q?q.id:null,prompt:q?q.prompt:null,sourcePage:q?q.sourcePage||null:null,correct:correct,selfGraded:selfGraded,confidence:confidence,response:response,at:new Date().toISOString()});
   }
   function act(action,d){
     var u=api().getUI(),s=current();
     if(action==='guide-home'){api().goto('guide');return;}
     if(action==='guide-start'||action==='guide-start-material'||action==='guide-restart'){start(action==='guide-start'?(document.getElementById('guide-material')?.value||d.id):d.id);return;}
     if(action==='guide-resume'){u.guideId=d.id;resetDraft();api().goto('guide-session');return;}
-    if(action==='guide-option'){if(s&&!s.feedback){draft.text=d.value;api().render();}return;}
-    if(action==='guide-confidence'){if(s&&!s.feedback){draft.confidence=d.value;api().render();}return;}
+    if(action==='guide-option'){if(s&&!s.feedback){hydrateDraft(s);draft.text=d.value;saveDraft(s);api().render();}return;}
+    if(action==='guide-confidence'){if(s&&!s.feedback){hydrateDraft(s);draft.confidence=d.value;saveDraft(s);api().render();}return;}
     if(!s||s.completedAt)return;
-    if(action==='guide-next'){if(rounds[s.round].id==='understand'||s.feedback?.done){advance(s);}return;}
+    if(action==='guide-next'){if(rounds[s.round].id==='understand'){hydrateDraft(s);if(draft.text.trim()){var passage=items(s)[s.index];s.records.push({kind:'understand',stage:'understand',step:s.index,sourcePage:passage&&passage.page||null,sourceText:passage&&passage.text||'',response:draft.text.trim(),correct:null,at:new Date().toISOString()});}advance(s);}else if(s.feedback?.done){advance(s);}return;}
     if(action==='guide-check'){
       if(s.feedback)return;
       var stage=rounds[s.round].id;
@@ -475,11 +505,10 @@
     }
   }
   function change(e){if(e.target.id==='guide-course'){api().getUI().guideCourseId=e.target.value;api().render();}}
-  function input(e){if(e.target.id==='guide-answer'){draft.text=e.target.value;var b=document.getElementById('guide-check');if(b)b.disabled=draft.text.trim().length<5||(current()&&(rounds[current().round].id==='recall'||rounds[current().round].id==='revise')&&!draft.confidence);}}
+  function input(e){if(e.target.id==='guide-answer'){var s=current();if(s)hydrateDraft(s);draft.text=e.target.value;if(s)saveDraft(s);var b=document.getElementById('guide-check');if(b)b.disabled=draft.text.trim().length<5||(current()&&(rounds[current().round].id==='recall'||rounds[current().round].id==='revise')&&!draft.confidence);}}
   function init(options){ctx=options;document.addEventListener('change',change);document.addEventListener('input',input);}
   root.SyllaGuide={init:init,renderHome:renderHome,renderSession:renderSession,act:act,start:start};
 })(globalThis);
-
 </script>
 <script>
 /* Syllasprint — zero-dependency application shell. All user data stays in this browser. */
@@ -525,7 +554,7 @@
     el('sidebar').innerHTML='<div><div class="logo"><span class="logo-mark">ϟ</span><span>syllasprint<span style="color:var(--mint)">.</span></span></div><p class="sidebar-small">YOUR WORKSPACE</p><nav class="side-nav" aria-label="Main navigation">'+navLinks().map(function(n){return '<button class="nav-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+' '+esc(n.label)+'</button>';}).join('')+'</nav></div><div class="sidebar-foot"><p class="quick-label">YOUR LEARNING SPACE</p><div class="side-course"><div><strong>'+esc(state.courses.length?state.courses[0].name:'Your first course')+'</strong><small>'+state.courses.length+' course'+(state.courses.length===1?'':'s')+' · Browser only</small></div><span class="side-stamp">✦</span></div><div class="side-note">Your notes and exam history stay on this device. Export a backup anytime.</div></div>';
     el('mobile-nav').innerHTML=navLinks().map(function(n){return '<button class="mob-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+'<span>'+esc(n.label)+'</span></button>';}).join('');
     var titles={dashboard:'Overview',courses:'My courses',course:'Course workspace',guide:'Guided Study', 'guide-session':'Study Mode',exam:'Practice setup',quiz:'Exam Room',results:'Exam results',weak:'Confidence gaps'};
-    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.2</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
+    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.3</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
   }
   function pageTitle(eyebrow,title,subtitle,action){return '<div class="page-heading"><div><div class="eyebrow">'+esc(eyebrow)+'</div><h1>'+title+'</h1><p>'+subtitle+'</p></div>'+(action?'<div class="right">'+action+'</div>':'')+'</div>';}
   function empty(iconName,title,desc,action){return '<div class="empty"><div class="empty-icon">'+ico(iconName)+'</div><h3>'+title+'</h3><p>'+desc+'</p>'+(action||'')+'</div>';}
@@ -698,7 +727,6 @@
   globalThis.SyllaGuide.init({getState:function(){return state;},getUI:function(){return ui;},C:C,esc:esc,ico:ico,button:textButton,persist:persist,goto:goto,render:render,toast:toast});
   render();
 })();
-
 </script>
 </body>
 </html>
