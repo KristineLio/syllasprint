@@ -10,7 +10,7 @@ Syllasprint is a newly authored, framework-free exam-practice application for th
 - **Confidence Gap detection**: high-confidence wrong answers become active weak spots until resolved on a later retake. Retake results explicitly show gaps resolved.
 - **Course workspaces** with exam dates, topics, questions, source notes, and observation-based stats.
 - **Text-based lecture PDF import** (up to 100 pages, 12 MB) with page references; `.txt`, `.md`, and pasted material work too.
-- **Source-grounded recall prompts**: ordinary lecture text generates transparent, self-graded practice questions using passages from the supplied document. No invented AI explanations or fake automatic grading.
+- **Source-grounded practice**: ordinary lecture text generates self-graded recall prompts and, where clear definitions are available, auto-graded literal concept-cloze MCQs. Explanations quote the supplied document rather than fabricating AI answers.
 - **Structured note support**: `TERM :: DEFINITION` builds MCQs when there are four distinct terms; `Q:` / `A:` pairs build self-graded questions.
 - **Editable questions**, accurate automatic MCQ accuracy, weak-spot filters, and local data backups using JSON export/import.
 - **Mobile-friendly interface** implemented with HTML, CSS, and vanilla JavaScript. No framework, account, or server.
@@ -29,7 +29,7 @@ For a brand-new Skycastle VibeFlow project, `syllasprint-vibeflow.html` provides
 
 PDF.js is downloaded on demand from a public CDN, so an internet connection is needed for first PDF import. The PDF contents are processed in-browser and not uploaded by Syllasprint. Scanned/image-only PDFs require OCR outside Syllasprint. If PDF.js is blocked, paste extracted text instead.
 
-Recall prompts generated from arbitrary prose are **heuristic and self-graded**, not AI-generated or academically validated. Review the questions and reference passages before relying on them. The app does not predict exam pass probabilities.
+Recall prompts generated from arbitrary prose are **heuristic and self-graded**; definition-based MCQs simply blank a concept that appears literally in the source. These are not AI-generated or academically validated. Review the questions and reference passages before relying on them. The app does not predict exam pass probabilities.
 
 Browser-local storage does not synchronize between devices and may be cleared by the browser. Export JSON backups regularly.
 
