@@ -97,14 +97,39 @@
     // Ordinary lecture slides and prose can create faithful self-graded recall prompts.
     // We never invent a multiple-choice answer from unsupported unstructured prose.
     if (result.length < 25 && root.SyllaLecture) {
-      var recall=root.SyllaLecture.recallCandidates(content,Math.min(32-result.length,32));
+      var recall=root.SyllaLecture.recallCandidates(content,Math.min(24-result.length,24));
       recall.forEach(function(item){
-        if(result.length>=32)return;
+        if(result.length>=24)return;
         result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'short',
           prompt:item.prompt,options:[],answer:item.answer,
           explanation:'Source-grounded recall prompt. Compare your response with the source passage and grade yourself.',
           sourceExcerpt:item.sourceExcerpt,sourcePage:item.sourcePage,origin:'source-recall',isDemo:false,createdAt:now});
       });
+      // Limited, literal cloze MCQs from definitions in the original source.
+      // The right answer is a named concept present in the quoted sentence, not inferred by AI.
+      if (recall.length>=4 && result.length<32) {
+        var concepts=[],conceptSeen=new Set();
+        recall.forEach(function(item){
+          var m=item.answer.match(/^(?:the\s+|an?\s+)?([A-Za-z_][A-Za-z0-9_\- ]{2,40}?)\s+(?:means|is|are|allows|provides|has|have|uses|returns|implements)\b/i);
+          if(!m)return;
+          var term=m[1].trim().replace(/\s+/g,' '),lower=term.toLowerCase();
+          if(term.split(' ').length>5||term.length>35||/^(this|that|there|most|every|some|yes|another|it|we|you|example|the data)\b/i.test(term)||conceptSeen.has(lower))return;
+          if(!/[a-z]/i.test(term))return;
+          conceptSeen.add(lower);concepts.push({term:term,item:item});
+        });
+        if(concepts.length>=4){
+          concepts.slice(0,Math.min(8,32-result.length)).forEach(function(entry){
+            var words=shuffled(concepts.filter(function(x){return x.term!==entry.term;}).map(function(x){return x.term;})).slice(0,3);
+            var regex=new RegExp('^((?:the|a|an)\\s+)?'+entry.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+            var cloze=entry.item.answer.replace(regex,function(full,article){return (article||'')+'_____';});
+            if(cloze===entry.item.answer)return;
+            result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'mcq',
+              prompt:'Which concept correctly completes this excerpt? “'+cloze+'”',options:shuffled([entry.term].concat(words)),answer:entry.term,
+              explanation:'The original sentence is: '+entry.item.answer,
+              sourceExcerpt:entry.item.sourceExcerpt,sourcePage:entry.item.sourcePage,origin:'source-cloze',isDemo:false,createdAt:now});
+          });
+        }
+      }
     }
     return result;
   }
@@ -353,7 +378,7 @@
       '<div class="section-head"><h2>Source material</h2>'+textButton('add-material',ico('upload')+' Import PDF / notes','btn-sm btn-mint','data-id="'+esc(c.id)+'"')+'</div>'+
       (materials.length?'<div class="course-list">'+materials.map(function(m){return '<div class="course-row"><div class="course-left"><span class="course-icon blue">'+ico('book')+'</span><div><div class="course-title">'+esc(m.title)+'</div><div class="course-meta">'+(m.content||'').length+' characters of source text</div></div></div><div class="course-actions">'+textButton('view-material','Read','btn-sm btn-light','data-id="'+esc(m.id)+'"')+textButton('delete-material',ico('trash'),'btn-sm btn-danger','data-id="'+esc(m.id)+'"')+'</div></div>';}).join('')+'</div>':empty('book','No notes yet','Upload a text-based lecture PDF or paste ordinary notes. Source-grounded recall questions are created for review.',textButton('add-material','Import a lecture','btn-mint','data-id="'+esc(c.id)+'"')))+
       '<div class="section-head"><h2>Question bank</h2>'+textButton('new-question',ico('plus')+' Add question','btn-sm','data-id="'+esc(c.id)+'"')+'</div><div class="filter-row">'+topicFilter+textButton('start-course-quiz',ico('arrow')+' Practice now','btn-sm btn-mint','data-id="'+esc(c.id)+'" '+(!s.questions?'disabled':''))+'</div>'+
-      (qs.length?'<div class="question-list">'+qs.map(function(q){var topic=state.topics.find(function(t){return t.id===q.topicId;});return '<div class="question-row"><div><span class="tag">'+esc(q.type==='mcq'?'MULTIPLE CHOICE':'SELF-GRADED')+'</span> '+(C.isGap(state,q)?'<span class="tag tag-coral">CONFIDENCE GAP</span>':'')+'<h3>'+esc(q.prompt)+'</h3><p>'+esc(topic?topic.name:'General')+' · '+esc(q.origin==='source-recall'?'source-grounded recall · review answer':(q.origin||'manual'))+'</p></div><div class="q-right">'+textButton('edit-question',ico('edit'),'btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Edit question"')+textButton('delete-question',ico('trash'),'btn-danger btn-sm','data-id="'+esc(q.id)+'" aria-label="Delete question"')+'</div></div>';}).join('')+'</div>':empty('exam','No questions yet','Add one manually or parse structured notes to build your exam.'));
+      (qs.length?'<div class="question-list">'+qs.map(function(q){var topic=state.topics.find(function(t){return t.id===q.topicId;});return '<div class="question-row"><div><span class="tag">'+esc(q.type==='mcq'?'MULTIPLE CHOICE':'SELF-GRADED')+'</span> '+(C.isGap(state,q)?'<span class="tag tag-coral">CONFIDENCE GAP</span>':'')+'<h3>'+esc(q.prompt)+'</h3><p>'+esc(topic?topic.name:'General')+' · '+esc(q.origin==='source-recall'?'source-grounded recall · self-graded':(q.origin==='source-cloze'?'source cloze · auto-graded':(q.origin||'manual')))+'</p></div><div class="q-right">'+textButton('edit-question',ico('edit'),'btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Edit question"')+textButton('delete-question',ico('trash'),'btn-danger btn-sm','data-id="'+esc(q.id)+'" aria-label="Delete question"')+'</div></div>';}).join('')+'</div>':empty('exam','No questions yet','Add one manually or parse structured notes to build your exam.'));
   }
   function renderExamSetup(){var cid=ui.setupCourseId || (state.courses[0]&&state.courses[0].id)||'';var c=state.courses.find(function(x){return x.id===cid;});var qs=state.questions.filter(function(q){return q.courseId===cid;});var weak=C.findWeak(state,cid);var count=ui.setupMode==='weak'?weak.length:qs.length;
     return pageTitle('Time to test yourself','The Exam Room','Small practice sessions. Clear feedback. Real progress.')+
