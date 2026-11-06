@@ -70,3 +70,6 @@ The **Study Mode** navigation item is available on desktop and mobile. Each save
 **Transparency:** The site is not an AI tutor. It does not autonomously explain new concepts, grade essays, execute Python, or guarantee that a generated recall prompt is pedagogically correct. Multiple-choice questions are checked automatically; open responses and code-reasoning tasks use source excerpts and transparent self-grading. Review generated questions for quality.
 
 Run `python tests/guided_mode.py` (Chromium + Playwright required) to smoke-test all five stages, persistence and the report. Browser-local storage can still be lost if site data is cleared; back it up regularly.
+### Saved answers (V2.3)
+
+Guided Study saves written drafts as you type, retains multiple-choice selections and confidence levels, records optional Understand-stage reflections, and displays a **My saved answers** journal in the session and completion report. Browser-local data can be deleted by browser clearing: export JSON for backup.
