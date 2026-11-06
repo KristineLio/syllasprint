@@ -38,7 +38,7 @@ class Student(SchoolMember):
   assert page.locator('.guide-session-head h1').inner_text()=='Understand'
   for _ in range(5):
     if page.locator('.guide-session-head h1').inner_text()!='Understand':break
-    page.get_by_role('button',name=re.compile('I understand')).click()
+    page.get_by_role('button',name=re.compile('Continue to next')).click()
   assert page.locator('.guide-session-head h1').inner_text()=='Active recall'
   first=None
   for _ in range(6):
