@@ -11,7 +11,7 @@ Syllasprint is a new, framework-free exam-practice app created for the November 
 - High-confidence wrong answers flagged as **Confidence Gaps**
 - Targeted retakes; corrected answers resolve active gaps
 - Courses with optional exam dates
-- Notes: paste text or load a `.txt` / `.md` file; parse `TERM :: DEFINITION` and `Q:` / `A:` pairs into real questions
+- Notes: parse `TERM :: DEFINITION` and `Q:` / `A:` pairs into real questions
 - Editable multiple-choice and self-graded short-answer questions
 - Persistent browser-local courses and attempts
 - Accurate auto-graded accuracy, coverage, and weak-spot metrics
