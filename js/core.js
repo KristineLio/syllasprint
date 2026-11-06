@@ -61,6 +61,18 @@
     });
     pairs.forEach(function(p){result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'short',prompt:p.question,options:[],answer:p.answer,
       explanation:'Compare your response with the answer from your notes.',sourceExcerpt:'Q: '+p.question+'\nA: '+p.answer,origin:'parser',isDemo:false,createdAt:now});});
+    // Ordinary lecture slides and prose can create faithful self-graded recall prompts.
+    // We never invent a multiple-choice answer from unsupported unstructured prose.
+    if (result.length < 25 && root.SyllaLecture) {
+      var recall=root.SyllaLecture.recallCandidates(content,Math.min(32-result.length,32));
+      recall.forEach(function(item){
+        if(result.length>=32)return;
+        result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'short',
+          prompt:item.prompt,options:[],answer:item.answer,
+          explanation:'Source-grounded recall prompt. Compare your response with the source passage and grade yourself.',
+          sourceExcerpt:item.sourceExcerpt,sourcePage:item.sourcePage,origin:'source-recall',isDemo:false,createdAt:now});
+      });
+    }
     return result;
   }
   var demoItems = [
