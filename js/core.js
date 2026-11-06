@@ -64,14 +64,39 @@
     // Ordinary lecture slides and prose can create faithful self-graded recall prompts.
     // We never invent a multiple-choice answer from unsupported unstructured prose.
     if (result.length < 25 && root.SyllaLecture) {
-      var recall=root.SyllaLecture.recallCandidates(content,Math.min(32-result.length,32));
+      var recall=root.SyllaLecture.recallCandidates(content,Math.min(24-result.length,24));
       recall.forEach(function(item){
-        if(result.length>=32)return;
+        if(result.length>=24)return;
         result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'short',
           prompt:item.prompt,options:[],answer:item.answer,
           explanation:'Source-grounded recall prompt. Compare your response with the source passage and grade yourself.',
           sourceExcerpt:item.sourceExcerpt,sourcePage:item.sourcePage,origin:'source-recall',isDemo:false,createdAt:now});
       });
+      // Limited, literal cloze MCQs from definitions in the original source.
+      // The right answer is a named concept present in the quoted sentence, not inferred by AI.
+      if (recall.length>=4 && result.length<32) {
+        var concepts=[],conceptSeen=new Set();
+        recall.forEach(function(item){
+          var m=item.answer.match(/^(?:the\s+|an?\s+)?([A-Za-z_][A-Za-z0-9_\- ]{2,40}?)\s+(?:means|is|are|allows|provides|has|have|uses|returns|implements)\b/i);
+          if(!m)return;
+          var term=m[1].trim().replace(/\s+/g,' '),lower=term.toLowerCase();
+          if(term.split(' ').length>5||term.length>35||/^(this|that|there|most|every|some|yes|another|it|we|you|example|the data)\b/i.test(term)||conceptSeen.has(lower))return;
+          if(!/[a-z]/i.test(term))return;
+          conceptSeen.add(lower);concepts.push({term:term,item:item});
+        });
+        if(concepts.length>=4){
+          concepts.slice(0,Math.min(8,32-result.length)).forEach(function(entry){
+            var words=shuffled(concepts.filter(function(x){return x.term!==entry.term;}).map(function(x){return x.term;})).slice(0,3);
+            var regex=new RegExp('^((?:the|a|an)\\s+)?'+entry.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+            var cloze=entry.item.answer.replace(regex,function(full,article){return (article||'')+'_____';});
+            if(cloze===entry.item.answer)return;
+            result.push({id:uid('q'),courseId:courseId,topicId:topicId,sourceId:materialId,type:'mcq',
+              prompt:'Which concept correctly completes this excerpt? “'+cloze+'”',options:shuffled([entry.term].concat(words)),answer:entry.term,
+              explanation:'The original sentence is: '+entry.item.answer,
+              sourceExcerpt:entry.item.sourceExcerpt,sourcePage:entry.item.sourcePage,origin:'source-cloze',isDemo:false,createdAt:now});
+          });
+        }
+      }
     }
     return result;
   }
