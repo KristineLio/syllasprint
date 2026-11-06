@@ -7,9 +7,10 @@ css=(root/'css/style.css').read_text()
 core=(root/'js/core.js').read_text()
 app=(root/'js/app.js').read_text()
 lecture=(root/'js/lecture.js').read_text()
-html=html.replace('<link rel="stylesheet" href="css/style.css" />','<style>'+css+'</style>')
-html=re.sub(r'\s*<script defer src="js/(?:core|app|lecture)\.js"></script>', '',html)
-html=html.replace('</body>','<script>'+core+'</script><script>'+lecture+'</script><script>'+app+'</script></body>')
+guide=(root/'js/guide.js').read_text()
+html=re.sub(r'<link rel="stylesheet" href="css/style\.css(?:\?[^"]+)?" />','<style>'+css+'</style>',html)
+html=re.sub(r'\s*<script defer src="js/(?:core|app|lecture|guide)\.js(?:\?[^"]+)?"></script>', '',html)
+html=html.replace('</body>','<script>'+core+'</script><script>'+lecture+'</script><script>'+guide+'</script><script>'+app+'</script></body>')
 errors=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
@@ -52,16 +53,16 @@ with sync_playwright() as p:
  page.get_by_text('Add course').first.click()
  page.locator('#course-name').fill('Data Structures')
  page.get_by_text('Create course',exact=True).click()
- page.get_by_text('Import PDF / notes').click()
+ page.get_by_text('Add PDF / notes').click()
  page.locator('#material-title').fill('Core protocols')
  page.locator('#material-content').fill('''DNS :: Translates domain names into IP addresses.\nDHCP :: Assigns IP configuration.\nTCP :: Provides reliable transport.\nUDP :: Sends connectionless datagrams.\nQ: What is a stack?\nA: Last-in first-out container.''')
- page.get_by_text('Save & generate questions').click()
+ page.get_by_text('Save material & generate practice').click()
  print('CUSTOM QUESTIONS:',page.locator('.question-row').count())
  assert page.locator('.question-row').count()>=5
  page.screenshot(path=str(root/'tests/course-desktop.png'),full_page=True)
  # Exercise a text-based PDF import through the browser. A local PDF.js API stand-in
  # verifies UI/state wiring; this does not claim to test the CDN PDF.js parser itself.
- page.get_by_text('Import PDF / notes').click()
+ page.get_by_text('Add PDF / notes').click()
  pages=[]
  import fitz, os, tempfile
  fixture=os.environ.get('SYLLASPRINT_PDF_FIXTURE','')
@@ -81,7 +82,7 @@ with sync_playwright() as p:
  page.wait_for_function(f"document.querySelector('#pdf-status').textContent.includes('{len(pages)} PDF pages')",timeout=15000)
  print('PDF IMPORT STATUS:',page.locator('#pdf-status').inner_text())
  assert 'Page 1' in page.locator('#material-content').input_value()
- page.get_by_text('Save & generate questions').click()
+ page.get_by_text('Save material & generate practice').click()
  count=page.locator('.question-row').count()
  print('COURSE QUESTIONS AFTER PDF:',count)
  assert count>=8
@@ -98,7 +99,7 @@ with sync_playwright() as p:
  mobile.evaluate('''() => {let data={};Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:k=>data[k]??null,setItem:(k,v)=>{data[k]=String(v)},removeItem:k=>delete data[k]}});}''')
  mobile.set_content(html,wait_until='load')
  mobile.screenshot(path=str(root/'tests/home-mobile.png'),full_page=True)
- print('MOBILE OVERFLOW:',mobile.evaluate('document.documentElement.scrollWidth > window.innerWidth'))
+ print('MOBILE OVERFLOW:',mobile.evaluate('document.documentElement.scrollWidth > window.innerWidth'),mobile.evaluate('({scroll:document.documentElement.scrollWidth,width:innerWidth,offenders:Array.from(document.querySelectorAll("*")).map(e=>({cls:e.className,x:e.getBoundingClientRect().right,w:e.scrollWidth})).filter(v=>v.x>innerWidth+1).slice(0,12)})'))
  print('JS ERRORS:',errors)
  assert not errors,errors
  assert not mobile.evaluate('document.documentElement.scrollWidth > window.innerWidth')
