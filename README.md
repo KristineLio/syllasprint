@@ -54,3 +54,19 @@ SYLLASPRINT_PDF_FIXTURE=/path/to/lecture.pdf python tests/browser_smoke.py
 This project was newly authored for the event without copying pre-existing StudyFlow code, UI, databases, or assets. Organizers must still determine whether it qualifies under their new-work rule when the underlying student-study problem is related.
 
 License: MIT.
+
+## Guided Study Mode (new)
+
+Syllasprint also includes a guided, five-round study path inspired by the **way a human tutor structures practice**, but implemented independently of older projects:
+
+1. **Understand:** Read four source excerpts and explain the material in your own words.
+2. **Active recall:** Answer source-linked multiple-choice or short-answer questions.
+3. **Apply:** Give an example and assess your reasoning against the actual lecture excerpt.
+4. **Debug / test:** Examine a real code excerpt when present, or describe a possible misconception and how to check it. **No code is executed.**
+5. **Revision:** Retake weak questions, see corrections, and review a saved report.
+
+The **Study Mode** navigation item is available on desktop and mobile. Each saved material has a **Study** button, and finished or unfinished learning sessions are visible in the Study Tracker. Guided records use the existing browser-local backup format, so JSON export/import includes them.
+
+**Transparency:** The site is not an AI tutor. It does not autonomously explain new concepts, grade essays, execute Python, or guarantee that a generated recall prompt is pedagogically correct. Multiple-choice questions are checked automatically; open responses and code-reasoning tasks use source excerpts and transparent self-grading. Review generated questions for quality.
+
+Run `python tests/guided_mode.py` (Chromium + Playwright required) to smoke-test all five stages, persistence and the report. Browser-local storage can still be lost if site data is cleared; back it up regularly.
