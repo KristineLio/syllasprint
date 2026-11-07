@@ -4,8 +4,8 @@ from playwright.sync_api import sync_playwright
 root=Path(__file__).parents[1]
 html=(root/'index.html').read_text(encoding='utf-8')
 html=re.sub(r'<link rel="stylesheet" href="css/style\.css(?:\?[^\"]*)?"\s*/>','<style>'+(root/'css/style.css').read_text(encoding='utf-8')+'</style>',html)
-html=re.sub(r'\s*<script defer src="js/(?:core|app|lecture|guide)\.js(?:\?[^\"]+)?"></script>','',html)
-html=html.replace('</body>',''.join('<script>'+(root/'js'/f'{name}.js').read_text(encoding='utf-8')+'</script>' for name in ['core','lecture','guide','app'])+'</body>')
+html=re.sub(r'\s*<script defer src="js/(?:core|app|lecture|guide|commute)\.js(?:\?[^\"]+)?"></script>','',html)
+html=html.replace('</body>',''.join('<script>'+(root/'js'/f'{name}.js').read_text(encoding='utf-8')+'</script>' for name in ['core','lecture','guide','commute','app'])+'</body>')
 errors=[]
 with sync_playwright() as p:
   b=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
