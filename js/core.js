@@ -4,7 +4,7 @@
   var VERSION = 1;
   var STORAGE_KEY = 'syllasprint_v1';
   function uid(prefix) { return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10); }
-  function emptyState() { return { schemaVersion: VERSION, courses: [], topics: [], materials: [], questions: [], attempts: [], sessions: [], commute: {sessions:[], savedQuestionIds:[]} }; }
+  function emptyState() { return { schemaVersion: VERSION, courses: [], topics: [], materials: [], questions: [], attempts: [], sessions: [], commute: {sessions:[], savedQuestionIds:[]}, boards: [] }; }
   function cleanState(data) {
     if (!data || typeof data !== 'object' || data.schemaVersion !== VERSION) throw new Error('Not a compatible Syllasprint v1 backup.');
     var keys = ['courses', 'topics', 'materials', 'questions', 'attempts', 'sessions'];
@@ -19,6 +19,14 @@
         !data.commute.savedQuestionIds.every(function(x){return typeof x==='string';})||
         !data.commute.sessions.every(function(x){return x&&x.kind==='commute'&&typeof x.id==='string'&&typeof x.courseId==='string'&&Array.isArray(x.questionIds)&&Array.isArray(x.reviews)&&Array.isArray(x.skipped||[]);}))throw new Error('Invalid commute sessions in backup.');
       clean.commute=JSON.parse(JSON.stringify(data.commute));
+    }
+    // Optional Study Canvas boards for backwards-compatible V1 backup imports.
+    if(data.boards!==undefined){
+      if(!Array.isArray(data.boards)||data.boards.length>500||(data.boards.length>0&&(!root.SyllaCanvas||!data.boards.every(root.SyllaCanvas.validBoard))))throw new Error('Invalid study canvas data in backup.');
+      var courseIds=new Set(clean.courses.map(function(c){return c.id;}));
+      var seen=new Set();
+      if(!data.boards.every(function(b){if(!courseIds.has(b.courseId)||seen.has(b.courseId))return false;seen.add(b.courseId);return true;}))throw new Error('Invalid or duplicate course canvas.');
+      clean.boards=JSON.parse(JSON.stringify(data.boards));
     }
     if (!clean.courses.every(function(c){return typeof c.id==='string' && typeof c.name==='string';}) ||
         !clean.questions.every(function(q){return typeof q.id==='string' && typeof q.courseId==='string' && typeof q.prompt==='string' && ['mcq','short'].includes(q.type);}) ||
@@ -140,6 +148,7 @@
     state.questions=state.questions.filter(function(x){return !ids.has(x.courseId);});
     state.attempts=state.attempts.filter(function(x){return !qids.has(x.questionId);});
     state.sessions=state.sessions.filter(function(x){return !ids.has(x.courseId);});
+    if(state.boards)state.boards=state.boards.filter(function(b){return !ids.has(b.courseId);});
     if(state.commute){state.commute.sessions=state.commute.sessions.filter(function(x){return !ids.has(x.courseId);});state.commute.savedQuestionIds=state.commute.savedQuestionIds.filter(function(x){return !qids.has(x);});}
   }
   function deleteCourse(state, courseId) {
@@ -150,6 +159,7 @@
     state.questions=state.questions.filter(function(x){return x.courseId!==courseId;});
     state.attempts=state.attempts.filter(function(x){return !qids.has(x.questionId);});
     state.sessions=state.sessions.filter(function(x){return x.courseId!==courseId;});
+    if(state.boards)state.boards=state.boards.filter(function(b){return b.courseId!==courseId;});
     if(state.commute){state.commute.sessions=state.commute.sessions.filter(function(x){return x.courseId!==courseId;});state.commute.savedQuestionIds=state.commute.savedQuestionIds.filter(function(x){return !qids.has(x);});}
   }
   function deleteQuestion(state,id) {
