@@ -86,3 +86,11 @@ Short, source-linked **Listen & Recall** sessions for 5, 10, or 15 minutes (maxi
 - No account, microphone, AI API, sound files, or network connection needed for quiz/review itself. Browser-provided speech voices may require an OS/browser voice download. Playback while the screen is locked or the tab is backgrounded is not guaranteed; **do not use while driving or where attention to surroundings is required.**
 
 Run `node tests/commute.test.cjs` and `python tests/commute_browser.py`. Verify voice output on your target phone; automated tests check controls and no-audio fallbacks, not audible speaker output.
+
+## Study Canvas (V2.5)
+
+The **Study Canvas** organizes your own ideas visually inside each course. Create and edit colored sticky notes, drag them around an independently scrollable board, connect related notes, and build a topic-based map from the course topics already present. Pin an existing practice question (with its stored reference answer) directly from the question bank. The map does not invent new concepts and is not an AI mind-map generator. There is one board per course, stored in the same browser-local backup as the rest of Syllasprint. Older v1 backups remain compatible. Course deletion removes its board.
+
+Study Canvas is intentionally a focused learning feature, not a replacement for Miro or Sprawl's full infinite canvas, drawing tools, and export formats. Keep longer study materials in Courses/Study Mode and use Canvas for relationships and quick notes.
+
+Tests: `node tests/canvas.test.cjs`. The delivered source ZIP additionally includes a Chromium browser smoke test for creating, editing, linking, dragging, reloading, importing and exporting notes on mobile.
