@@ -87,10 +87,18 @@ Short, source-linked **Listen & Recall** sessions for 5, 10, or 15 minutes (maxi
 
 Run `node tests/commute.test.cjs` and `python tests/commute_browser.py`. Verify voice output on your target phone; automated tests check controls and no-audio fallbacks, not audible speaker output.
 
-## Study Canvas (V2.5)
+## Concept Map (V2.6; upgraded from Study Canvas V2.5)
 
-The **Study Canvas** organizes your own ideas visually inside each course. Create and edit colored sticky notes, drag them around an independently scrollable board, connect related notes, and build a topic-based map from the course topics already present. Pin an existing practice question (with its stored reference answer) directly from the question bank. The map does not invent new concepts and is not an AI mind-map generator. There is one board per course, stored in the same browser-local backup as the rest of Syllasprint. Older v1 backups remain compatible. Course deletion removes its board.
+The **Concept Map** organizes your own ideas visually inside each course. Create and edit colored sticky notes, drag them around an independently scrollable board, connect related notes, and build a topic-based map from the course topics already present. Pin an existing practice question (with its stored reference answer) directly from the question bank. The map does not invent new concepts and is not an AI mind-map generator. There is one board per course, stored in the same browser-local backup as the rest of Syllasprint. Older v1 backups remain compatible. Course deletion removes its board.
 
-Study Canvas is intentionally a focused learning feature, not a replacement for Miro or Sprawl's full infinite canvas, drawing tools, and export formats. Keep longer study materials in Courses/Study Mode and use Canvas for relationships and quick notes.
+Concept Map is intentionally a focused learning feature, not a replacement for Miro or Sprawl's full infinite canvas, drawing tools, and export formats. Keep longer study materials in Courses/Study Mode and use Canvas for relationships and quick notes.
 
 Tests: `node tests/canvas.test.cjs`. The delivered source ZIP additionally includes a Chromium browser smoke test for creating, editing, linking, dragging, reloading, importing and exporting notes on mobile.
+
+### Source-linked concepts and targeted practice (V2.6)
+
+Existing course boards and their JSON backup fields are retained without migration. Concept Map lets you assign a sticky note to an existing course topic and a real uploaded lecture, optionally with a verified PDF page number. No sources, citations or page numbers are invented. Cards pinned from the question bank inherit the question's stored source excerpt and page where available. On the map, a card marked CONFIDENCE GAP reflects a high-confidence mistake on a linked question's latest graded attempt; a successful retake clears the status automatically. Click Study on a card to see the linked reference and launch a targeted Exam Room session containing only the pinned question or questions explicitly assigned to that topic. Untagged manual notes stay usable without claiming unsupported practice links.
+
+Current limitations: Topic maps connect concepts via course topic IDs and pinned question IDs, not semantic matching. A lecture stored as unpaginated text cannot provide accurate PDF page links. PDF.js is still needed to import new PDFs and may require network access. The Concept Map is a course-learning workspace, not a general-purpose team whiteboard.
+
+Regression checks: node tests/concept.test.cjs and python tests/concept_browser.py.

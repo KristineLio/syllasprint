@@ -58,6 +58,25 @@
 @media(max-width:680px){.canvas-course-callout{align-items:flex-start;flex-direction:column}.canvas-toolbar{align-items:stretch}.canvas-toolbar .btn{flex-grow:1}.canvas-course-picker{width:100%}.canvas-course-picker select{max-width:100%;width:100%}.canvas-scroll{height:65vh;min-height:460px}}
 @media print{.canvas-toolbar,.canvas-hint,.canvas-footer,.canvas-sticky-actions{display:none!important}.canvas-scroll{overflow:visible;height:auto;border:0;box-shadow:none}.canvas-surface{transform:scale(.7);transform-origin:top left}.canvas-sticky{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
 
+/* V2.6 Concept Map: study relevance, source provenance, and actionable revisions. */
+.canvas-sticky.concept-has-gap{outline:3px solid #d97966;outline-offset:0}
+.concept-badges{display:flex;flex-wrap:wrap;gap:3px;margin:0 10px 4px;max-height:31px;overflow:hidden}
+.concept-badges span{font-size:8px;font-weight:900;line-height:1.25;letter-spacing:.3px;border-radius:4px;padding:3px 5px}
+.concept-gap{color:#8a3529;background:#ffe4dc}
+.concept-weak{color:#7b490c;background:#ffefd0}
+.concept-reference{color:#244c54;background:#d5eff0}
+.concept-study-btn{background:#172433;color:#fff;border-color:#172433}
+.concept-study-btn:hover{background:#355068;color:#fff}
+.canvas-sticky-actions{flex-wrap:wrap}
+.concept-study-dialog{line-height:1.6;color:var(--ink)}
+.concept-study-dialog h3{font-size:16px;margin:22px 0 6px}
+.concept-study-dialog>p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+.concept-study-meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.concept-source-title{font-weight:700;font-size:13px}
+.concept-excerpt{white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow-y:auto;padding:15px;border-left:4px solid #9bc87b;border-radius:4px;background:#f4f8ee;color:#30423b;font-size:13px;line-height:1.6}
+.concept-modal-actions{flex-wrap:wrap}
+@media(max-width:680px){.concept-modal-actions .btn{width:100%;justify-content:center}.canvas-sticky-actions{gap:3px}}
+
 </style>
   
   
@@ -663,7 +682,7 @@
 
 </script>
 <script>
-/* Syllasprint Study Canvas. Original, course-linked learning notes (not a Sprawl clone). */
+/* Syllasprint Concept Map. Source-linked study notes and targeted revision. */
 (function(root){
   'use strict';
   var WIDTH=1180, HEIGHT=740, CARD_W=244, CARD_H=180, COLORS=['mint','sky','peach','lavender','cream'];
@@ -681,13 +700,17 @@
     if(!b||b.nodes.length>=80)throw new Error('This canvas has reached its 80-note limit.');
     title=String(title||'').trim().slice(0,80);body=String(body||'').trim().slice(0,1200);
     if(!title&&!body)throw new Error('Write a title or some note text.');
-    var note={id:uid('note'),title:title||'Untitled note',body:body,color:COLORS.includes(color)?color:'cream',x:clamp(x,0,WIDTH-CARD_W),y:clamp(y,0,HEIGHT-CARD_H),sourceQuestionId:meta&&meta.sourceQuestionId||'',topicId:meta&&meta.topicId||'',createdAt:new Date().toISOString()};
+    var note={id:uid('note'),title:title||'Untitled note',body:body,color:COLORS.includes(color)?color:'cream',x:clamp(x,0,WIDTH-CARD_W),y:clamp(y,0,HEIGHT-CARD_H),sourceQuestionId:meta&&meta.sourceQuestionId||'',topicId:meta&&meta.topicId||'',sourceId:meta&&meta.sourceId||'',sourcePage:meta&&meta.sourcePage||null,createdAt:new Date().toISOString()};
     b.nodes.push(note);touch(b);return note;
   }
   function updateNote(b,id,data){var n=b&&b.nodes.find(function(x){return x.id===id;});if(!n)return false;
     var title=String(data.title||'').trim().slice(0,80),body=String(data.body||'').trim().slice(0,1200);
     if(!title&&!body)throw new Error('Write a title or some note text.');
-    n.title=title||'Untitled note';n.body=body;n.color=COLORS.includes(data.color)?data.color:'cream';touch(b);return true;
+    n.title=title||'Untitled note';n.body=body;n.color=COLORS.includes(data.color)?data.color:'cream';
+    if(Object.prototype.hasOwnProperty.call(data,'topicId'))n.topicId=String(data.topicId||'');
+    if(Object.prototype.hasOwnProperty.call(data,'sourceId'))n.sourceId=String(data.sourceId||'');
+    if(Object.prototype.hasOwnProperty.call(data,'sourcePage'))n.sourcePage=data.sourcePage?Math.max(1,Math.min(100,Math.floor(Number(data.sourcePage)))):null;
+    touch(b);return true;
   }
   function move(b,id,x,y){var n=b&&b.nodes.find(function(x){return x.id===id;});if(!n)return false;n.x=clamp(x,0,WIDTH-CARD_W);n.y=clamp(y,0,HEIGHT-CARD_H);touch(b);return true;}
   function link(b,from,to){if(!b||from===to)return false;if(!b.nodes.some(function(x){return x.id===from;})||!b.nodes.some(function(x){return x.id===to;}))return false;
@@ -702,17 +725,45 @@
     var root=b.nodes.find(function(n){return n.topicId==='__root__';});if(!root)root=addNote(b,course.name,'What do I need to understand before this exam?','mint',40,270,{topicId:'__root__'});
     var created=0;
     topics.forEach(function(topic,i){if(b.nodes.length>=80)return;var match=b.nodes.find(function(n){return n.topicId===topic.id;});if(match){link(b,root.id,match.id);return;}
-      var col=i%3,row=Math.floor(i/3),note=addNote(b,topic.name,'Add an explanation, example, and questions about this topic.','sky',340+col*270,70+row*212,{topicId:topic.id});link(b,root.id,note.id);created++;
+      var col=i%3,row=Math.floor(i/3),topicSources=state.materials.filter(function(m){return m.courseId===courseId&&m.topicId===topic.id;}),note=addNote(b,topic.name,'Add an explanation, example, and questions about this topic.','sky',340+col*270,70+row*212,{topicId:topic.id,sourceId:topicSources.length===1?topicSources[0].id:''});link(b,root.id,note.id);created++;
     });return created;
   }
   function pinQuestion(state,question){var b=board(state,question.courseId);if(!b)return null;var old=b.nodes.find(function(n){return n.sourceQuestionId===question.id;});if(old)return old;
-    var index=b.nodes.length,n=addNote(b,question.prompt,question.answer+(question.sourcePage?'\nSource page: '+question.sourcePage:''),'peach',40+(index%4)*278,45+(Math.floor(index/4)%3)*220,{sourceQuestionId:question.id});return n;
+    var index=b.nodes.length,n=addNote(b,question.prompt,question.answer+(question.sourcePage?'\nSource page: '+question.sourcePage:''),'peach',40+(index%4)*278,45+(Math.floor(index/4)%3)*220,{sourceQuestionId:question.id,topicId:question.topicId||'',sourceId:question.sourceId||'',sourcePage:question.sourcePage||null});return n;
+  }
+  // Only link to questions explicitly pinned or assigned to the same course topic.
+  // Never match unrelated questions based on their words or invent a source.
+  function relatedQuestions(state,courseId,note){
+    if(!note)return [];
+    if(note.sourceQuestionId)return state.questions.filter(function(q){return q.courseId===courseId&&q.id===note.sourceQuestionId;});
+    if(!note.topicId||note.topicId==='__root__')return [];
+    return state.questions.filter(function(q){return q.courseId===courseId&&q.topicId===note.topicId;});
+  }
+  function pagePassage(material,page){
+    if(!material||!page)return '';
+    var txt=String(material.content||'');
+    var reg=new RegExp('\\[\\[Page\\s+'+page+'\\]\\]\\s*([\\s\\S]*?)(?=\\[\\[Page\\s+\\d+\\]\\]|$)','i');
+    var m=txt.match(reg);return m?m[1].trim().slice(0,1400):'';
+  }
+  function sourceFor(state,courseId,note){
+    var q=note&&note.sourceQuestionId?state.questions.find(function(x){return x.id===note.sourceQuestionId&&x.courseId===courseId;}):null;
+    var sourceId=(q&&q.sourceId)||note&&note.sourceId||'';
+    var material=state.materials.find(function(m){return m.id===sourceId&&m.courseId===courseId;})||null;
+    var page=(q&&q.sourcePage)||note&&note.sourcePage||null;
+    var excerpt=q&&q.sourceExcerpt||pagePassage(material,page)||'';
+    return material||excerpt?{material:material,page:page,excerpt:excerpt,question:q}:null;
+  }
+  function noteStatus(state,courseId,note){
+    var qs=relatedQuestions(state,courseId,note);
+    return {questions:qs,gaps:qs.filter(function(q){return root.SyllaCore&&root.SyllaCore.isGap(state,q);}).length,
+      weak:qs.filter(function(q){return root.SyllaCore&&root.SyllaCore.isWeak(state,q);}).length,
+      source:sourceFor(state,courseId,note)};
   }
   function validBoard(b){if(!b||typeof b.id!=='string'||typeof b.courseId!=='string'||!Array.isArray(b.nodes)||!Array.isArray(b.links)||b.nodes.length>80||b.links.length>300)return false;
-    var ids=new Set();for(var i=0;i<b.nodes.length;i++){var n=b.nodes[i];if(!n||typeof n.id!=='string'||ids.has(n.id)||typeof n.title!=='string'||typeof n.body!=='string'||n.title.length>80||n.body.length>1200||!Number.isFinite(n.x)||!Number.isFinite(n.y)||!COLORS.includes(n.color))return false;ids.add(n.id);}
+    var ids=new Set();for(var i=0;i<b.nodes.length;i++){var n=b.nodes[i];if(!n||typeof n.id!=='string'||ids.has(n.id)||typeof n.title!=='string'||typeof n.body!=='string'||n.title.length>80||n.body.length>1200||!Number.isFinite(n.x)||!Number.isFinite(n.y)||!COLORS.includes(n.color)||['topicId','sourceId','sourceQuestionId'].some(function(k){return n[k]!==undefined&&typeof n[k]!=='string';})||(n.sourcePage!=null&&(!Number.isInteger(n.sourcePage)||n.sourcePage<1||n.sourcePage>100)))return false;ids.add(n.id);}
     return b.links.every(function(l){return l&&typeof l.id==='string'&&ids.has(l.from)&&ids.has(l.to)&&l.from!==l.to;});
   }
-  root.SyllaCanvas={WIDTH:WIDTH,HEIGHT:HEIGHT,CARD_W:CARD_W,CARD_H:CARD_H,COLORS:COLORS,ensure:ensure,board:board,getBoard:getBoard,addNote:addNote,updateNote:updateNote,move:move,link:link,unlink:unlink,removeNote:removeNote,fromTopics:fromTopics,pinQuestion:pinQuestion,validBoard:validBoard};
+  root.SyllaCanvas={WIDTH:WIDTH,HEIGHT:HEIGHT,CARD_W:CARD_W,CARD_H:CARD_H,COLORS:COLORS,ensure:ensure,board:board,getBoard:getBoard,addNote:addNote,updateNote:updateNote,move:move,link:link,unlink:unlink,removeNote:removeNote,fromTopics:fromTopics,pinQuestion:pinQuestion,relatedQuestions:relatedQuestions,sourceFor:sourceFor,noteStatus:noteStatus,validBoard:validBoard};
 })(typeof globalThis!=='undefined'?globalThis:this);
 
 </script>
@@ -757,13 +808,13 @@
   function persist(){try{localStorage.setItem(C.STORAGE_KEY,JSON.stringify(state));return true;}catch(e){toast('Storage is full or unavailable. Export your data to protect it.',true);return false;}}
   function toast(message,error){var r=el('toast-region');if(!r)return;var node=document.createElement('div');node.className='toast'+(error?' error':'');node.textContent=message;r.appendChild(node);setTimeout(function(){node.remove();},4300);}
   function goto(page,courseId){if(ui.page==='commute-session'&&page!=='commute-session')speaker.stop();ui.page=page;if(courseId!==undefined)ui.courseId=courseId;ui.search='';render();window.scrollTo({top:0,behavior:'instant'});}
-  function navLinks(){return [{id:'dashboard',label:'Dashboard',icon:'home'},{id:'courses',label:'Courses',icon:'book'},{id:'guide',label:'Study Mode',icon:'spark'},{id:'commute',label:'Commute Mode',icon:'clock'},{id:'canvas',label:'Study Canvas',icon:'canvas'},{id:'exam',label:'Exam Room',icon:'exam'},{id:'weak',label:'Weak Spots',icon:'target'}];}
+  function navLinks(){return [{id:'dashboard',label:'Dashboard',icon:'home'},{id:'courses',label:'Courses',icon:'book'},{id:'guide',label:'Study Mode',icon:'spark'},{id:'commute',label:'Commute Mode',icon:'clock'},{id:'canvas',label:'Concept Map',icon:'canvas'},{id:'exam',label:'Exam Room',icon:'exam'},{id:'weak',label:'Weak Spots',icon:'target'}];}
   function activeNav(id){return (ui.page==='course'&&id==='courses')||(ui.page==='guide-session'&&id==='guide')||(ui.page==='commute-session'&&id==='commute')||(ui.page==='commute-report'&&id==='commute')||((ui.page==='quiz'||ui.page==='results')&&id==='exam')||ui.page===id;}
   function renderShell(){
     el('sidebar').innerHTML='<div><div class="logo"><span class="logo-mark">ϟ</span><span>syllasprint<span style="color:var(--mint)">.</span></span></div><p class="sidebar-small">YOUR WORKSPACE</p><nav class="side-nav" aria-label="Main navigation">'+navLinks().map(function(n){return '<button class="nav-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+' '+esc(n.label)+'</button>';}).join('')+'</nav></div><div class="sidebar-foot"><p class="quick-label">YOUR LEARNING SPACE</p><div class="side-course"><div><strong>'+esc(state.courses.length?state.courses[0].name:'Your first course')+'</strong><small>'+state.courses.length+' course'+(state.courses.length===1?'':'s')+' · Browser only</small></div><span class="side-stamp">✦</span></div><div class="side-note">Your notes and exam history stay on this device. Export a backup anytime.</div></div>';
     el('mobile-nav').innerHTML=navLinks().map(function(n){return '<button class="mob-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+'<span>'+esc(n.label)+'</span></button>';}).join('');
-    var titles={dashboard:'Overview',courses:'My courses',course:'Course workspace',guide:'Guided Study', 'guide-session':'Study Mode',commute:'Commute Mode','commute-session':'Listen & Recall','commute-report':'Commute review',canvas:'Study Canvas',exam:'Practice setup',quiz:'Exam Room',results:'Exam results',weak:'Confidence gaps'};
-    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.5</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
+    var titles={dashboard:'Overview',courses:'My courses',course:'Course workspace',guide:'Guided Study', 'guide-session':'Study Mode',commute:'Commute Mode','commute-session':'Listen & Recall','commute-report':'Commute review',canvas:'Concept Map',exam:'Practice setup',quiz:'Exam Room',results:'Exam results',weak:'Confidence gaps'};
+    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.6</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
   }
   function pageTitle(eyebrow,title,subtitle,action){return '<div class="page-heading"><div><div class="eyebrow">'+esc(eyebrow)+'</div><h1>'+title+'</h1><p>'+subtitle+'</p></div>'+(action?'<div class="right">'+action+'</div>':'')+'</div>';}
   function empty(iconName,title,desc,action){return '<div class="empty"><div class="empty-icon">'+ico(iconName)+'</div><h3>'+title+'</h3><p>'+desc+'</p>'+(action||'')+'</div>';}
@@ -788,11 +839,11 @@
     var topicFilter='<select id="topic-filter" aria-label="Filter questions by topic"><option value="all">All topics</option>'+topics.map(function(t){return '<option value="'+esc(t.id)+'" '+(ui.topicFilter===t.id?'selected':'')+'>'+esc(t.name)+'</option>';}).join('')+'</select>';
     return pageTitle('Course workspace',esc(c.name),esc(timeUntilDate(c.examDate))+' · '+s.questions+' questions · '+s.attempted+' practiced',textButton('course-edit',ico('edit')+' Edit','btn-light','data-id="'+esc(c.id)+'"')+textButton('course-delete',ico('trash')+' Delete','btn-danger','data-id="'+esc(c.id)+'"')+(c.isDemo?textButton('remove-demo','Remove sample','btn-light',''):'') )+
       '<div class="mini-grid"><div class="card"><div class="eyebrow">Questions ready</div><h2 style="font-size:34px;margin:6px 0">'+s.questions+'</h2><p>Add a note or write questions manually.</p></div><div class="card"><div class="eyebrow">Your confidence gaps</div><h2 style="font-size:34px;margin:6px 0">'+s.gaps+'</h2><p>Resolved after a correct retake.</p></div></div>'+
-      '<div class="canvas-course-callout"><div><strong>Study Canvas</strong><p>Arrange sticky notes and connect concepts for this course.</p></div>'+textButton('canvas-open',ico('canvas')+' Open study canvas','btn-sm btn-mint','data-id="'+esc(c.id)+'"')+'</div>'+
+      '<div class="canvas-course-callout"><div><strong>Concept Map</strong><p>Connect lecture topics, spot Confidence Gaps, and practice the concepts behind your notes.</p></div>'+textButton('canvas-open',ico('canvas')+' Open concept map','btn-sm btn-mint','data-id="'+esc(c.id)+'"')+'</div>'+
       '<div class="section-head"><h2>Course materials</h2>'+textButton('add-material',ico('upload')+' Add PDF / notes','btn-sm btn-mint','data-id="'+esc(c.id)+'"')+'</div>'+
       (materials.length?'<div class="course-list">'+materials.map(function(m){return '<div class="course-row"><div class="course-left"><span class="course-icon blue">'+ico('book')+'</span><div><div class="course-title">'+esc(m.title)+'</div><div class="course-meta">'+(m.content||'').length+' characters of source text</div></div></div><div class="course-actions">'+textButton('guide-start-material',ico('spark')+' Study','btn-sm btn-mint','data-id="'+esc(m.id)+'"')+textButton('view-material','Read','btn-sm btn-light','data-id="'+esc(m.id)+'"')+textButton('delete-material',ico('trash'),'btn-sm btn-danger','data-id="'+esc(m.id)+'"')+'</div></div>';}).join('')+'</div>':empty('book','No notes yet','Upload a text-based lecture PDF or paste ordinary notes. Source-grounded recall questions are created for review.',textButton('add-material','Add course material','btn-mint','data-id="'+esc(c.id)+'"')))+
       '<div class="section-head"><h2>Question bank</h2>'+textButton('new-question',ico('plus')+' Add question','btn-sm','data-id="'+esc(c.id)+'"')+'</div><div class="filter-row">'+topicFilter+textButton('start-course-quiz',ico('arrow')+' Practice now','btn-sm btn-mint','data-id="'+esc(c.id)+'" '+(!s.questions?'disabled':''))+'</div>'+
-      (qs.length?'<div class="question-list">'+qs.map(function(q){var topic=state.topics.find(function(t){return t.id===q.topicId;});return '<div class="question-row"><div><span class="tag">'+esc(q.type==='mcq'?'MULTIPLE CHOICE':'SELF-GRADED')+'</span> '+(C.isGap(state,q)?'<span class="tag tag-coral">CONFIDENCE GAP</span>':'')+'<h3>'+esc(q.prompt)+'</h3><p>'+esc(topic?topic.name:'General')+' · '+esc(q.origin==='source-recall'?'source-grounded recall · self-graded':(q.origin==='source-cloze'?'source cloze · auto-graded':(q.origin||'manual')))+'</p></div><div class="q-right">'+textButton('canvas-pin',ico('canvas')+' Pin','btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Pin question to Study Canvas"')+textButton('edit-question',ico('edit'),'btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Edit question"')+textButton('delete-question',ico('trash'),'btn-danger btn-sm','data-id="'+esc(q.id)+'" aria-label="Delete question"')+'</div></div>';}).join('')+'</div>':empty('exam','No questions yet','Add one manually or parse structured notes to build your exam.'));
+      (qs.length?'<div class="question-list">'+qs.map(function(q){var topic=state.topics.find(function(t){return t.id===q.topicId;});return '<div class="question-row"><div><span class="tag">'+esc(q.type==='mcq'?'MULTIPLE CHOICE':'SELF-GRADED')+'</span> '+(C.isGap(state,q)?'<span class="tag tag-coral">CONFIDENCE GAP</span>':'')+'<h3>'+esc(q.prompt)+'</h3><p>'+esc(topic?topic.name:'General')+' · '+esc(q.origin==='source-recall'?'source-grounded recall · self-graded':(q.origin==='source-cloze'?'source cloze · auto-graded':(q.origin||'manual')))+'</p></div><div class="q-right">'+textButton('canvas-pin',ico('canvas')+' Pin','btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Pin question to Concept Map"')+textButton('edit-question',ico('edit'),'btn-light btn-sm','data-id="'+esc(q.id)+'" aria-label="Edit question"')+textButton('delete-question',ico('trash'),'btn-danger btn-sm','data-id="'+esc(q.id)+'" aria-label="Delete question"')+'</div></div>';}).join('')+'</div>':empty('exam','No questions yet','Add one manually or parse structured notes to build your exam.'));
   }
   function renderExamSetup(){var cid=ui.setupCourseId || (state.courses[0]&&state.courses[0].id)||'';var c=state.courses.find(function(x){return x.id===cid;});var qs=state.questions.filter(function(q){return q.courseId===cid;});var weak=C.findWeak(state,cid);var count=ui.setupMode==='weak'?weak.length:qs.length;
     return pageTitle('Time to test yourself','The Exam Room','Small practice sessions. Clear feedback. Real progress.')+
@@ -889,32 +940,53 @@
   function canvasCourse(){var id=ui.canvasCourseId||ui.courseId;return state.courses.find(function(c){return c.id===id;})||state.courses[0]||null;}
   function canvasBoard(){var c=canvasCourse();return c?B.board(state,c.id):null;}
   function renderCanvas(){
-    var c=canvasCourse();if(!c)return pageTitle('Your visual thinking space','Study Canvas','Connect ideas with notes that belong to your courses.')+empty('book','Create a course first','Add a course to collect your notes and concepts.',textButton('new-course','Create course','btn-mint'));
+    var c=canvasCourse();if(!c)return pageTitle('Your visual thinking space','Concept Map','Connect lecture ideas and turn them into targeted revision.')+empty('book','Create a course first','Add a course to collect your notes and concepts.',textButton('new-course','Create course','btn-mint'));
     ui.canvasCourseId=c.id;
     var b=canvasBoard(),topics=state.topics.filter(function(t){return t.courseId===c.id;});
     var selector='<label class="canvas-course-picker">Course <select id="canvas-course">'+state.courses.map(function(x){return '<option value="'+esc(x.id)+'" '+(x.id===c.id?'selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select></label>';
-    var toolbar='<div class="canvas-toolbar">'+selector+textButton('canvas-add',ico('plus')+' New sticky note','btn-mint btn-sm')+textButton('canvas-topics',ico('spark')+' Map course topics','btn-light btn-sm',topics.length?'':'disabled title="Add topics first"')+textButton('canvas-reset',ico('trash')+' Clear canvas','btn-light btn-sm',b.nodes.length?'':'disabled')+'</div>';
+    var toolbar='<div class="canvas-toolbar">'+selector+textButton('canvas-add',ico('plus')+' New concept note','btn-mint btn-sm')+textButton('canvas-topics',ico('spark')+' Map course topics','btn-light btn-sm',topics.length?'':'disabled title="Add topics first"')+textButton('canvas-reset',ico('trash')+' Clear map','btn-light btn-sm',b.nodes.length?'':'disabled')+'</div>';
     var lines=b.links.map(function(l){var a=b.nodes.find(function(x){return x.id===l.from;}),z=b.nodes.find(function(x){return x.id===l.to;});if(!a||!z)return '';
       return '<g class="canvas-edge" data-link-id="'+esc(l.id)+'"><line data-from="'+esc(a.id)+'" data-to="'+esc(z.id)+'" x1="'+(a.x+B.CARD_W/2)+'" y1="'+(a.y+B.CARD_H/2)+'" x2="'+(z.x+B.CARD_W/2)+'" y2="'+(z.y+B.CARD_H/2)+'" /><title>Concept connection</title></g>';}).join('');
-    var nodes=b.nodes.map(function(n){return '<article class="canvas-sticky canvas-'+esc(n.color)+'" data-node-id="'+esc(n.id)+'" style="left:'+n.x+'px;top:'+n.y+'px"><div class="canvas-sticky-head" data-canvas-drag="'+esc(n.id)+'" tabindex="0" role="button" aria-label="Drag note '+esc(n.title)+'"><span class="canvas-grip">⠿</span><span>DRAG TO MOVE</span></div><h3>'+esc(n.title)+'</h3><p>'+esc(n.body||'Tap Edit to add your explanation.')+'</p><div class="canvas-sticky-actions">'+textButton('canvas-edit','Edit','canvas-mini-btn','data-id="'+esc(n.id)+'"')+textButton('canvas-connect',ui.canvasLinkFrom===n.id?'Selected ✓':'Connect','canvas-mini-btn '+(ui.canvasLinkFrom===n.id?'canvas-selected':''),'data-id="'+esc(n.id)+'" aria-label="Select note to connect"')+textButton('canvas-delete','×','canvas-mini-btn canvas-delete-note','data-id="'+esc(n.id)+'" aria-label="Delete note"')+'</div></article>';}).join('');
-    var note=b.nodes.length?'<span>'+b.nodes.length+' notes · '+b.links.length+' connections</span>':'<span>Start with one sticky note, or map your course topics.</span>';
-    return pageTitle('Turn your notes into connections','Study Canvas','A simple, visual workspace for your own ideas. Each course has its own board.')+toolbar+
-      '<div class="canvas-hint" role="status" aria-live="polite">'+(ui.canvasLinkFrom?'Now choose <strong>Connect</strong> on a second note to draw a line. '+textButton('canvas-cancel-link','Cancel','canvas-text-btn'):'Drag by the handle, choose Connect on two notes, or use Edit. On phones, swipe the board to see more.')+'</div>'+
-      '<div class="canvas-scroll" aria-label="Scroll to explore your course canvas" tabindex="0"><div class="canvas-surface" id="canvas-surface"><svg aria-hidden="true" class="canvas-lines" width="'+B.WIDTH+'" height="'+B.HEIGHT+'" viewBox="0 0 '+B.WIDTH+' '+B.HEIGHT+'"><defs><marker id="canvas-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#80a096"/></marker></defs>'+lines+'</svg>'+nodes+(b.nodes.length?'':'<div class="canvas-empty"><span class="canvas-empty-icon">✦</span><strong>Your ideas start here</strong><p>Create a note, or generate a map using topics already in this course.</p>'+textButton('canvas-add','Create first note','btn-mint btn-sm')+'</div>')+'</div></div>'+
+    var nodes=b.nodes.map(function(n){var status=B.noteStatus(state,c.id,n);
+      var badges=status.gaps?'<span class="concept-gap">CONFIDENCE GAP · '+status.gaps+'</span>':status.weak?'<span class="concept-weak">NEEDS REVISION · '+status.weak+'</span>':'';
+      if(status.source)badges+='<span class="concept-reference">'+esc(status.source.page?'LECTURE P. '+status.source.page:'SOURCE LINKED')+'</span>';
+      return '<article class="canvas-sticky canvas-'+esc(n.color)+(status.gaps?' concept-has-gap':'')+'" data-node-id="'+esc(n.id)+'" style="left:'+n.x+'px;top:'+n.y+'px"><div class="canvas-sticky-head" data-canvas-drag="'+esc(n.id)+'" tabindex="0" role="button" aria-label="Drag note '+esc(n.title)+'"><span class="canvas-grip">⠿</span><span>DRAG TO MOVE</span></div><h3>'+esc(n.title)+'</h3>'+(badges?'<div class="concept-badges">'+badges+'</div>':'')+'<p>'+esc(n.body||'Tap Edit to add your explanation.')+'</p><div class="canvas-sticky-actions">'+textButton('canvas-edit','Edit','canvas-mini-btn','data-id="'+esc(n.id)+'"')+(status.questions.length||status.source?textButton('canvas-study','Study','canvas-mini-btn concept-study-btn','data-id="'+esc(n.id)+'" aria-label="Explore source and practice this concept"'):'')+textButton('canvas-connect',ui.canvasLinkFrom===n.id?'Selected ✓':'Connect','canvas-mini-btn '+(ui.canvasLinkFrom===n.id?'canvas-selected':''),'data-id="'+esc(n.id)+'" aria-label="Select note to connect"')+textButton('canvas-delete','×','canvas-mini-btn canvas-delete-note','data-id="'+esc(n.id)+'" aria-label="Delete note"')+'</div></article>';}).join('');
+    var note=b.nodes.length?'<span>'+b.nodes.length+' notes · '+b.links.length+' connections</span>':'<span>Start with a concept, or map your course topics.</span>';
+    return pageTitle('Turn your notes into connections','Concept Map','Link your lecture sources to concepts, highlight active Confidence Gaps, and practice what matters.')+toolbar+
+      '<div class="canvas-hint" role="status" aria-live="polite">'+(ui.canvasLinkFrom?'Now choose <strong>Connect</strong> on a second note to draw a line. '+textButton('canvas-cancel-link','Cancel','canvas-text-btn'):'Use Edit to link a lecture or course topic; Study opens its source and questions. Drag to arrange; connect related concepts.')+'</div>'+
+      '<div class="canvas-scroll" aria-label="Scroll to explore your course canvas" tabindex="0"><div class="canvas-surface" id="canvas-surface"><svg aria-hidden="true" class="canvas-lines" width="'+B.WIDTH+'" height="'+B.HEIGHT+'" viewBox="0 0 '+B.WIDTH+' '+B.HEIGHT+'"><defs><marker id="canvas-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#80a096"/></marker></defs>'+lines+'</svg>'+nodes+(b.nodes.length?'':'<div class="canvas-empty"><span class="canvas-empty-icon">✦</span><strong>Your ideas start here</strong><p>Make a note with a source, or generate concepts from real course topics.</p>'+textButton('canvas-add','Create first concept','btn-mint btn-sm')+'</div>')+'</div></div>'+
       '<div class="canvas-footer">'+note+'<span>Saved locally with your other Syllasprint data · Included in Export JSON</span></div>';
   }
-  function canvasNoteDialog(note){var b=canvasBoard();if(!b)return;var n=note||{};
-    openDialog(n.id?'Edit sticky note':'Add sticky note','<form data-form="canvas-note" data-id="'+esc(n.id||'')+'"><div class="field"><label for="canvas-note-title">Title *</label><input id="canvas-note-title" name="title" value="'+esc(n.title||'')+'" maxlength="80" required placeholder="e.g. Encapsulation" /></div><div class="field"><label for="canvas-note-body">Your explanation, example or question</label><textarea id="canvas-note-body" name="body" maxlength="1200" rows="6" placeholder="Explain this concept in your own words...">'+esc(n.body||'')+'</textarea></div><div class="field"><label for="canvas-note-color">Note color</label><select id="canvas-note-color" name="color">'+B.COLORS.map(function(color){return '<option value="'+color+'" '+(n.color===color?'selected':'')+'>'+color.charAt(0).toUpperCase()+color.slice(1)+'</option>';}).join('')+'</select></div><p class="hint">Tip: add one concept per note, then connect related ideas. Notes are editable and saved in this browser.</p>'+formFooter(n.id?'Save note':'Add to canvas')+'</form>');
+  function canvasNoteDialog(note){var b=canvasBoard();if(!b)return;var n=note||{},cid=b.courseId;
+    var topics=state.topics.filter(function(t){return t.courseId===cid;}),materials=state.materials.filter(function(m){return m.courseId===cid;});
+    var topicSelect='<div class="field"><label for="canvas-note-topic">Related course topic</label><select id="canvas-note-topic" name="topicId"><option value="">Not assigned</option>'+topics.map(function(t){return '<option value="'+esc(t.id)+'" '+(t.id===n.topicId?'selected':'')+'>'+esc(t.name)+'</option>';}).join('')+'</select><span class="hint">Choose a topic that has course questions to enable targeted exam practice.</span></div>';
+    var sourceSelect='<div class="field"><label for="canvas-note-source">Lecture source (optional)</label><select id="canvas-note-source" name="sourceId"><option value="">No lecture linked</option>'+materials.map(function(m){return '<option value="'+esc(m.id)+'" '+(m.id===n.sourceId?'selected':'')+'>'+esc(m.title)+'</option>';}).join('')+'</select></div>';
+    var pageInput='<div class="field"><label for="canvas-note-page">Lecture page (optional)</label><input id="canvas-note-page" name="sourcePage" type="number" min="1" max="100" value="'+esc(n.sourcePage||'')+'" placeholder="Page from the uploaded PDF"/><span class="hint">Use a page number only if it is present in your actual source.</span></div>';
+    openDialog(n.id?'Edit concept note':'Add concept note','<form data-form="canvas-note" data-id="'+esc(n.id||'')+'"><div class="field"><label for="canvas-note-title">Title *</label><input id="canvas-note-title" name="title" value="'+esc(n.title||'')+'" maxlength="80" required placeholder="e.g. Encapsulation" /></div><div class="field"><label for="canvas-note-body">Your explanation, example or question</label><textarea id="canvas-note-body" name="body" maxlength="1200" rows="6" placeholder="Explain this concept in your own words...">'+esc(n.body||'')+'</textarea></div><div class="field"><label for="canvas-note-color">Note color</label><select id="canvas-note-color" name="color">'+B.COLORS.map(function(color){return '<option value="'+color+'" '+(n.color===color?'selected':'')+'>'+color.charAt(0).toUpperCase()+color.slice(1)+'</option>';}).join('')+'</select></div>'+topicSelect+sourceSelect+pageInput+'<p class="hint">Concept notes are linked to your own materials and practice history—not generated by an AI mind-map tool.</p>'+formFooter(n.id?'Save note':'Add to map')+'</form>');
+  }
+  function canvasStudyDialog(n){var b=canvasBoard();if(!b||!n)return;
+    var info=B.noteStatus(state,b.courseId,n),s=info.source,sourceTitle=s&&s.material?s.material.title:(s?'Stored question reference':'No lecture linked');
+    var sourceText=s&&s.excerpt?'<blockquote class="concept-excerpt">'+esc(s.excerpt)+'</blockquote>':'<p class="hint">'+(s?'This concept links to a lecture. Open it to check the original passage.':'No source passage linked yet. Edit the note to select an uploaded lecture, or pin a sourced question.')+'</p>';
+    var details='<div class="concept-study-meta">'+(info.gaps?'<span class="tag tag-coral">'+info.gaps+' unresolved Confidence Gap'+(info.gaps===1?'':'s')+'</span>':info.weak?'<span class="tag tag-yellow">'+info.weak+' question'+(info.weak===1?'':'s')+' needs work</span>':'<span class="tag tag-mint">'+info.questions.length+' related question'+(info.questions.length===1?'':'s')+'</span>')+'</div>';
+    var sourceBlock='<h3>Lecture reference</h3><p class="concept-source-title">'+esc(sourceTitle)+(s&&s.page?' · Page '+esc(s.page):'')+'</p>'+sourceText;
+    var actions='<div class="modal-footer concept-modal-actions">'+(info.questions.length?textButton('canvas-practice',ico('exam')+' Practice this concept ('+info.questions.length+')','btn-mint','data-id="'+esc(n.id)+'"'):'<span class="hint">Link a topic with questions or pin a question to unlock practice.</span>')+(s&&s.material?textButton('canvas-read',ico('book')+' Read entire lecture','btn-light','data-id="'+esc(s.material.id)+'"'):'')+textButton('close-modal','Close','btn-light')+'</div>';
+    openDialog('Study: '+n.title,'<div class="concept-study-dialog"><p>'+esc(n.body||'Your concept note.')+'</p>'+details+sourceBlock+actions+'</div>');
   }
   function canvasAction(a,d){var b=canvasBoard();if(!b)return;
     if(a==='canvas-open'){ui.canvasCourseId=d.id;ui.canvasLinkFrom='';goto('canvas');return;}
     if(a==='canvas-add'){canvasNoteDialog();return;}
     if(a==='canvas-edit'){canvasNoteDialog(b.nodes.find(function(x){return x.id===d.id;}));return;}
+    if(a==='canvas-study'){canvasStudyDialog(b.nodes.find(function(x){return x.id===d.id;}));return;}
+    if(a==='canvas-practice'){var node=b.nodes.find(function(x){return x.id===d.id;}),linked=node?B.relatedQuestions(state,b.courseId,node):[];
+      if(!linked.length){toast('No linked practice questions for this concept yet.',true);return;}
+      closeDialog();startQuiz(b.courseId,linked.length,'all',linked.map(function(q){return q.id;}));return;}
+    if(a==='canvas-read'){var linkedMaterial=state.materials.find(function(m){return m.id===d.id&&m.courseId===b.courseId;});
+      if(linkedMaterial){closeDialog();showSource(linkedMaterial.id);}else toast('This lecture is no longer available.',true);return;}
     if(a==='canvas-delete'){if(window.confirm('Delete this note and all its connections?')){B.removeNote(b,d.id);if(ui.canvasLinkFrom===d.id)ui.canvasLinkFrom='';persist();render();toast('Note removed.');}return;}
     if(a==='canvas-connect'){if(!ui.canvasLinkFrom){ui.canvasLinkFrom=d.id;render();return;}if(ui.canvasLinkFrom===d.id){ui.canvasLinkFrom='';render();return;}var ok=B.link(b,ui.canvasLinkFrom,d.id);ui.canvasLinkFrom='';if(ok)persist();render();toast(ok?'Notes connected.':'These notes are already connected.');return;}
     if(a==='canvas-cancel-link'){ui.canvasLinkFrom='';render();return;}
     if(a==='canvas-topics'){var n=B.fromTopics(state,b.courseId);persist();render();toast(n?n+' course topic notes added.':'No new topics. Add course topics to create a map.');return;}
-    if(a==='canvas-reset'){if(window.confirm('Clear all notes and connections on this course canvas? The course and practice questions will stay intact.')){b.nodes=[];b.links=[];ui.canvasLinkFrom='';persist();render();toast('Canvas cleared.');}return;}
+    if(a==='canvas-reset'){if(window.confirm('Clear all notes and connections on this course canvas? The course and practice questions will stay intact.')){b.nodes=[];b.links=[];ui.canvasLinkFrom='';persist();render();toast('Concept map cleared.');}return;}
   }
   var canvasDrag=null;
   document.addEventListener('pointerdown',function(e){var handle=e.target.closest('[data-canvas-drag]');if(!handle||ui.page!=='canvas'||e.button!==0)return;
@@ -969,7 +1041,7 @@
     z.index++;z.choice='';z.confidence='';z.revealed=false;z.answered=false;z.lastAttempt=null;render();}
   function confirmDelete(message){return window.confirm(message);}
   function action(a,d){
-    if(a.startsWith('canvas-')){if(a==='canvas-pin'){var pin=state.questions.find(function(q){return q.id===d.id;});if(pin){var node=B.pinQuestion(state,pin);ui.canvasCourseId=pin.courseId;persist();goto('canvas');toast(node?'Question pinned to Study Canvas.':'Unable to pin question.');}return;}canvasAction(a,d);return;}
+    if(a.startsWith('canvas-')){if(a==='canvas-pin'){var pin=state.questions.find(function(q){return q.id===d.id;});if(pin){var node=B.pinQuestion(state,pin);ui.canvasCourseId=pin.courseId;persist();goto('canvas');toast(node?'Question pinned to Concept Map.':'Unable to pin question.');}return;}canvasAction(a,d);return;}
     if(a.startsWith('commute-')){commuteAction(a,d);return;}
     if(a.startsWith('guide-')){globalThis.SyllaGuide.act(a,d);return;}
     if(a==='navigate'){goto(d.id);return;}
@@ -1031,8 +1103,12 @@
       if(kind==='canvas-note'){
         var b=canvasBoard(),title=String(form.get('title')||'').trim(),body=String(form.get('body')||'').trim(),color=String(form.get('color')||'cream');
         if(!b)throw new Error('Choose a course first.');
-        if(f.dataset.id){B.updateNote(b,f.dataset.id,{title:title,body:body,color:color});}
-        else{var index=b.nodes.length;B.addNote(b,title,body,color,50+(index%4)*275,75+(Math.floor(index/4)%3)*212);}
+        var topicId=String(form.get('topicId')||''),sourceId=String(form.get('sourceId')||''),rawPage=String(form.get('sourcePage')||''),sourcePage=rawPage?Number(rawPage):null;
+        if(topicId&&!state.topics.some(function(t){return t.courseId===b.courseId&&t.id===topicId;}))throw new Error('Choose a valid course topic.');
+        if(sourceId&&!state.materials.some(function(m){return m.courseId===b.courseId&&m.id===sourceId;}))throw new Error('Choose a valid lecture from this course.');
+        if(rawPage&&(!Number.isInteger(sourcePage)||sourcePage<1||sourcePage>100))throw new Error('Lecture page must be between 1 and 100.');
+        if(f.dataset.id){B.updateNote(b,f.dataset.id,{title:title,body:body,color:color,topicId:topicId,sourceId:sourceId,sourcePage:sourcePage});}
+        else{var index=b.nodes.length;B.addNote(b,title,body,color,50+(index%4)*275,75+(Math.floor(index/4)%3)*212,{topicId:topicId,sourceId:sourceId,sourcePage:sourcePage});}
         if(!persist())throw new Error('Unable to save your notes. Export a backup to protect your work.');
         closeDialog();render();toast('Study note saved.');return;
       }
