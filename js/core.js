@@ -4,7 +4,7 @@
   var VERSION = 1;
   var STORAGE_KEY = 'syllasprint_v1';
   function uid(prefix) { return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10); }
-  function emptyState() { return { schemaVersion: VERSION, courses: [], topics: [], materials: [], questions: [], attempts: [], sessions: [] }; }
+  function emptyState() { return { schemaVersion: VERSION, courses: [], topics: [], materials: [], questions: [], attempts: [], sessions: [], commute: {sessions:[], savedQuestionIds:[]} }; }
   function cleanState(data) {
     if (!data || typeof data !== 'object' || data.schemaVersion !== VERSION) throw new Error('Not a compatible Syllasprint v1 backup.');
     var keys = ['courses', 'topics', 'materials', 'questions', 'attempts', 'sessions'];
@@ -12,6 +12,14 @@
     if (keys.some(function (k) { return data[k].length > 10000; })) throw new Error('Backup is too large.');
     var clean = emptyState();
     keys.forEach(function (k) { clean[k] = JSON.parse(JSON.stringify(data[k])); });
+    // Commute data is optional in old v1 backups. Never reset existing studies.
+    if(data.commute!==undefined){
+      if(!data.commute||typeof data.commute!=='object'||!Array.isArray(data.commute.sessions)||!Array.isArray(data.commute.savedQuestionIds))throw new Error('Invalid commute data in backup.');
+      if(data.commute.sessions.length>10000||data.commute.savedQuestionIds.length>10000||
+        !data.commute.savedQuestionIds.every(function(x){return typeof x==='string';})||
+        !data.commute.sessions.every(function(x){return x&&x.kind==='commute'&&typeof x.id==='string'&&typeof x.courseId==='string'&&Array.isArray(x.questionIds)&&Array.isArray(x.reviews)&&Array.isArray(x.skipped||[]);}))throw new Error('Invalid commute sessions in backup.');
+      clean.commute=JSON.parse(JSON.stringify(data.commute));
+    }
     if (!clean.courses.every(function(c){return typeof c.id==='string' && typeof c.name==='string';}) ||
         !clean.questions.every(function(q){return typeof q.id==='string' && typeof q.courseId==='string' && typeof q.prompt==='string' && ['mcq','short'].includes(q.type);}) ||
         !clean.attempts.every(function(a){return typeof a.questionId==='string' && typeof a.correct==='boolean';})) throw new Error('Backup contains invalid records.');
@@ -132,6 +140,7 @@
     state.questions=state.questions.filter(function(x){return !ids.has(x.courseId);});
     state.attempts=state.attempts.filter(function(x){return !qids.has(x.questionId);});
     state.sessions=state.sessions.filter(function(x){return !ids.has(x.courseId);});
+    if(state.commute){state.commute.sessions=state.commute.sessions.filter(function(x){return !ids.has(x.courseId);});state.commute.savedQuestionIds=state.commute.savedQuestionIds.filter(function(x){return !qids.has(x);});}
   }
   function deleteCourse(state, courseId) {
     var qids=new Set(state.questions.filter(function(q){return q.courseId===courseId;}).map(function(q){return q.id;}));
@@ -141,10 +150,12 @@
     state.questions=state.questions.filter(function(x){return x.courseId!==courseId;});
     state.attempts=state.attempts.filter(function(x){return !qids.has(x.questionId);});
     state.sessions=state.sessions.filter(function(x){return x.courseId!==courseId;});
+    if(state.commute){state.commute.sessions=state.commute.sessions.filter(function(x){return x.courseId!==courseId;});state.commute.savedQuestionIds=state.commute.savedQuestionIds.filter(function(x){return !qids.has(x);});}
   }
   function deleteQuestion(state,id) {
     state.questions=state.questions.filter(function(q){return q.id!==id;});
     state.attempts=state.attempts.filter(function(a){return a.questionId!==id;});
+    if(state.commute){state.commute.savedQuestionIds=state.commute.savedQuestionIds.filter(function(x){return x!==id;});state.commute.sessions.forEach(function(s){s.questionIds=s.questionIds.filter(function(x){return x!==id;});if(s.index>=s.questionIds.length)s.index=Math.max(0,s.questionIds.length-1);});}
   }
   function addAttempt(state,sessionId,q,choice,confidence,manualResult) {
     var correct=q.type==='mcq'?choice===q.answer:!!manualResult;
