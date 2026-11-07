@@ -1,7 +1,7 @@
 /* Syllasprint — zero-dependency application shell. All user data stays in this browser. */
 (function () {
   'use strict';
-  var C = globalThis.SyllaCore;
+  var C = globalThis.SyllaCore, M = globalThis.SyllaCommute;
   var state;
   try {
     var raw = localStorage.getItem(C.STORAGE_KEY);
@@ -11,6 +11,8 @@
     document.addEventListener('DOMContentLoaded', function(){ toast('Saved data could not be read. Use Import to restore a backup.', true); });
   }
   var ui = { page:'dashboard', courseId:null, quiz:null, search:'', topicFilter:'all', weakFilter:'all', setupCourseId:'', setupMode:'all', importAfterCreate:false, importedPdf:false, guideId:null, guideCourseId:null };
+  var speaker=M.makeSpeaker();
+  var commuteCourseId='', commuteMinutes=10, commuteResultId=null;
   var el = function (id) { return document.getElementById(id); };
   var iconPaths={
     home:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
@@ -34,21 +36,21 @@
   function textButton(action,text,kind,attrs){return '<button type="button" class="btn '+(kind||'')+'" data-action="'+esc(action)+'" '+(attrs||'')+'>'+text+'</button>';}
   function persist(){try{localStorage.setItem(C.STORAGE_KEY,JSON.stringify(state));return true;}catch(e){toast('Storage is full or unavailable. Export your data to protect it.',true);return false;}}
   function toast(message,error){var r=el('toast-region');if(!r)return;var node=document.createElement('div');node.className='toast'+(error?' error':'');node.textContent=message;r.appendChild(node);setTimeout(function(){node.remove();},4300);}
-  function goto(page,courseId){ui.page=page;if(courseId!==undefined)ui.courseId=courseId;ui.search='';render();window.scrollTo({top:0,behavior:'instant'});}
-  function navLinks(){return [{id:'dashboard',label:'Dashboard',icon:'home'},{id:'courses',label:'Courses',icon:'book'},{id:'guide',label:'Study Mode',icon:'spark'},{id:'exam',label:'Exam Room',icon:'exam'},{id:'weak',label:'Weak Spots',icon:'target'}];}
-  function activeNav(id){return (ui.page==='course'&&id==='courses')||(ui.page==='guide-session'&&id==='guide')||((ui.page==='quiz'||ui.page==='results')&&id==='exam')||ui.page===id;}
+  function goto(page,courseId){if(ui.page==='commute-session'&&page!=='commute-session')speaker.stop();ui.page=page;if(courseId!==undefined)ui.courseId=courseId;ui.search='';render();window.scrollTo({top:0,behavior:'instant'});}
+  function navLinks(){return [{id:'dashboard',label:'Dashboard',icon:'home'},{id:'courses',label:'Courses',icon:'book'},{id:'guide',label:'Study Mode',icon:'spark'},{id:'commute',label:'Commute Mode',icon:'clock'},{id:'exam',label:'Exam Room',icon:'exam'},{id:'weak',label:'Weak Spots',icon:'target'}];}
+  function activeNav(id){return (ui.page==='course'&&id==='courses')||(ui.page==='guide-session'&&id==='guide')||(ui.page==='commute-session'&&id==='commute')||(ui.page==='commute-report'&&id==='commute')||((ui.page==='quiz'||ui.page==='results')&&id==='exam')||ui.page===id;}
   function renderShell(){
     el('sidebar').innerHTML='<div><div class="logo"><span class="logo-mark">ϟ</span><span>syllasprint<span style="color:var(--mint)">.</span></span></div><p class="sidebar-small">YOUR WORKSPACE</p><nav class="side-nav" aria-label="Main navigation">'+navLinks().map(function(n){return '<button class="nav-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+' '+esc(n.label)+'</button>';}).join('')+'</nav></div><div class="sidebar-foot"><p class="quick-label">YOUR LEARNING SPACE</p><div class="side-course"><div><strong>'+esc(state.courses.length?state.courses[0].name:'Your first course')+'</strong><small>'+state.courses.length+' course'+(state.courses.length===1?'':'s')+' · Browser only</small></div><span class="side-stamp">✦</span></div><div class="side-note">Your notes and exam history stay on this device. Export a backup anytime.</div></div>';
     el('mobile-nav').innerHTML=navLinks().map(function(n){return '<button class="mob-link '+(activeNav(n.id)?'active':'')+'" data-action="navigate" data-id="'+n.id+'">'+ico(n.icon)+'<span>'+esc(n.label)+'</span></button>';}).join('');
-    var titles={dashboard:'Overview',courses:'My courses',course:'Course workspace',guide:'Guided Study', 'guide-session':'Study Mode',exam:'Practice setup',quiz:'Exam Room',results:'Exam results',weak:'Confidence gaps'};
-    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.3</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
+    var titles={dashboard:'Overview',courses:'My courses',course:'Course workspace',guide:'Guided Study', 'guide-session':'Study Mode',commute:'Commute Mode','commute-session':'Listen & Recall','commute-report':'Commute review',exam:'Practice setup',quiz:'Exam Room',results:'Exam results',weak:'Confidence gaps'};
+    el('topbar').innerHTML='<div class="topbar-left">'+ico('spark')+' Syllasprint <span class="build-version">V2.4</span><span style="color:#a0aba9">/</span> '+esc(titles[ui.page]||'Workspace')+'</div><div class="topbar-actions"><span class="top-chip">'+ico('shield')+' Local-first</span>'+textButton('quick-import',ico('upload')+' <span class="upload-label">Add material</span><span class="upload-short">PDF</span>','btn-sm btn-mint topbar-upload')+textButton('new-course',ico('plus')+' Add course','btn-sm')+'</div>';
   }
   function pageTitle(eyebrow,title,subtitle,action){return '<div class="page-heading"><div><div class="eyebrow">'+esc(eyebrow)+'</div><h1>'+title+'</h1><p>'+subtitle+'</p></div>'+(action?'<div class="right">'+action+'</div>':'')+'</div>';}
   function empty(iconName,title,desc,action){return '<div class="empty"><div class="empty-icon">'+ico(iconName)+'</div><h3>'+title+'</h3><p>'+desc+'</p>'+(action||'')+'</div>';}
   function courseCard(c){var qcount=state.questions.filter(function(q){return q.courseId===c.id;}).length;return '<div class="course-row"><div class="course-left"><span class="course-icon '+(c.isDemo?'warm':'')+'">'+ico('book')+'</span><div style="min-width:0"><div class="course-title">'+esc(c.name)+'</div><div class="course-meta">'+qcount+' question'+(qcount===1?'':'s')+' · '+esc(timeUntilDate(c.examDate))+'</div></div></div><div class="course-actions">'+(c.isDemo?'<span class="tag tag-yellow">SAMPLE</span>':'')+'<button class="icon-button" data-action="open-course" data-id="'+esc(c.id)+'" aria-label="Open '+esc(c.name)+'">'+ico('chevron')+'</button></div></div>';}
   function metric(iconName,title,value,foot){return '<div class="stat"><div class="stat-label">'+ico(iconName)+' '+esc(title)+'</div><div class="stat-number">'+esc(value)+'</div><div class="stat-foot">'+esc(foot)+'</div></div>';}
   function renderDashboard(){var s=C.computeStats(state);var courses=state.courses.slice(0,4);
-    var hero='<section class="hero"><div class="hero-text"><div class="hero-kicker">Your study advantage</div><h2>Know your weak spots <span style="color:var(--mint)">before exam day.</span></h2><p>Stop memorizing what feels familiar. Practice, spot confident mistakes, and focus on what actually needs work.</p><div class="hero-actions">'+textButton('demo',ico('spark')+' Try a 60-second exam','btn-mint')+textButton('navigate',ico('book')+' Guided Study','hero-outline','data-id="guide"')+textButton('quick-import',ico('upload')+' Upload PDF / notes','hero-outline')+'</div></div><div class="hero-art"><div class="orbit"></div><div class="orbit"></div><div class="orbit"></div><div class="hero-core"><span>?</span><small>know it?</small></div><div class="hero-floating one">'+ico('check')+' One question at a time</div><div class="hero-floating two"><span class="float-dot"></span>Confidence gap spotted</div></div></section>';
+    var hero='<section class="hero"><div class="hero-text"><div class="hero-kicker">Your study advantage</div><h2>Know your weak spots <span style="color:var(--mint)">before exam day.</span></h2><p>Stop memorizing what feels familiar. Practice, spot confident mistakes, and focus on what actually needs work.</p><div class="hero-actions">'+textButton('demo',ico('spark')+' Try a 60-second exam','btn-mint')+textButton('navigate',ico('book')+' Guided Study','hero-outline','data-id="guide"')+textButton('navigate',ico('clock')+' Listen on your commute','hero-outline','data-id="commute"')+textButton('quick-import',ico('upload')+' Upload PDF / notes','hero-outline')+'</div></div><div class="hero-art"><div class="orbit"></div><div class="orbit"></div><div class="orbit"></div><div class="hero-core"><span>?</span><small>know it?</small></div><div class="hero-floating one">'+ico('check')+' One question at a time</div><div class="hero-floating two"><span class="float-dot"></span>Confidence gap spotted</div></div></section>';
     return pageTitle('Welcome to your exam comeback','Study smarter.<br>Show up ready.','The best time to discover a knowledge gap is before your exam.')+hero+
       '<section aria-label="Your study statistics" class="stats-grid">'+metric('book','Courses',s.courses,'Learning spaces')+metric('exam','Practiced',s.attempted,'Distinct questions')+metric('target','Confidence gaps',s.gaps,'Unresolved, high-confidence misses')+metric('check','Observed accuracy',s.accuracy===null?'—':s.accuracy+'%',s.accuracy===null?'Take a quiz to begin':'Auto-graded attempts')+'</section>'+
       '<div class="two-col"><section><div class="section-head"><h2>Your courses</h2><button class="text-link" data-action="navigate" data-id="courses">View all '+ico('arrow')+'</button></div>'+(courses.length?'<div class="course-list">'+courses.map(courseCard).join('')+'</div>':empty('book','Start with one course','Add your own subject and notes, or try the built-in networking exam.',textButton('new-course',ico('plus')+' Create course','btn-mint')))+'</section><aside><div class="section-head"><h2>Why confidence matters</h2></div><div class="tip-card">'+ico('target')+'<h3>Wrong + very sure?<br>That is your signal.</h3><p>A confidence gap is a wrong answer given with high confidence. Syllasprint flags it until you get it right on a later attempt.</p>'+textButton('navigate','View weak spots '+ico('arrow'),'btn-sm','data-id="weak"')+'</div></aside></div>'+
@@ -102,7 +104,66 @@
       (qs.length?'<div class="weak-grid">'+content+'</div>':empty('target','No weak spots in this view','Complete an exam to discover what needs work. Correct retakes clear unresolved gaps.',textButton('navigate','Go to Exam Room','btn-mint','data-id="exam"')))+
       '<div class="callout" style="margin-top:18px">'+ico('info')+' <strong>How it works:</strong> Weak spots use the latest attempt for each question. Old attempts are retained for your progress history. Getting a question right later resolves its active gap.</div>';
   }
-  function render(){renderShell();var html=ui.page==='guide'?globalThis.SyllaGuide.renderHome():ui.page==='guide-session'?globalThis.SyllaGuide.renderSession():ui.page==='dashboard'?renderDashboard():ui.page==='courses'?renderCourses():ui.page==='course'?renderCourse():ui.page==='exam'?renderExamSetup():ui.page==='quiz'?renderQuiz():ui.page==='results'?renderResults():renderWeak();el('content').innerHTML=html;}
+  function timeLabel(seconds){var n=Math.max(0,Number(seconds)||0);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+  function renderCommuteHome(){
+    var store=M.ensure(state),running=M.active(state),courseId=commuteCourseId||state.courses[0]?.id||'',available=state.questions.filter(function(q){return q.courseId===courseId&&M.eligible(q);});
+    var recent=store.sessions.filter(function(x){return x.completedAt;}).slice(0,3);
+    return '<div class="commute-page">'+pageTitle('Learn anywhere','Commute Mode','Your own course material, read aloud as short source-linked recall sessions.')+
+      '<section class="commute-hero"><span class="commute-label">LISTEN · THINK · REVEAL · REVIEW</span><h2>Turn spare minutes into study time.</h2><p>Questions come from your saved courses. Listen with headphones or read the same cards silently. Review difficult questions again later.</p><span class="commute-note">Audio works only where your browser supports speech synthesis. Keep this tab open; background playback and offline voices aren’t guaranteed.</span></section>'+
+      (running?'<section class="card commute-resume"><h2>Your unfinished commute</h2><p>'+esc(running.minutes)+'-minute session · '+running.index+' / '+running.questionIds.length+' cards completed</p>'+textButton('commute-resume','Resume where I stopped','btn-mint')+' '+textButton('commute-finish','End and save this session','btn-light')+'</section>':'')+
+      '<section class="card commute-setup"><h2>Plan your session</h2>'+
+      (!state.courses.length?empty('book','No course yet','Try the original networking sample or create a course.',textButton('commute-demo','Try a 5-minute sample commute','btn-mint')):
+      '<form data-form="commute-start"><div class="field"><label for="commute-course">Course</label><select name="courseId" id="commute-course">'+state.courses.map(function(c){return '<option value="'+esc(c.id)+'" '+(c.id===courseId?'selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div><div class="field"><label for="commute-minutes">Available time</label><select id="commute-minutes" name="minutes">'+[5,10,15].map(function(n){return '<option value="'+n+'" '+(commuteMinutes===n?'selected':'')+'>'+n+' minutes · up to '+M.LIMITS[n]+' recall cards</option>';}).join('')+'</select></div><p class="hint">'+available.length+' answerable questions in this course · '+store.savedQuestionIds.filter(function(id){return available.some(function(q){return q.id===id;});}).length+' saved for review. Weak questions appear first. Time is a maximum, not a promise of exact playback length.</p><button type="submit" class="btn btn-mint" '+(running||!available.length?'disabled':'')+'>Start Listen & Recall '+ico('arrow')+'</button>'+(available.length?'':textButton('commute-demo','Try sample commute','btn-light'))+'</form>')+
+      '</section>'+(recent.length?'<section class="commute-recent"><h2>Recent commute reviews</h2>'+recent.map(function(s){var st=M.stats(s);return '<div class="commute-history"><div><strong>'+st.reviewed+' reviewed · '+st.again+' to revisit</strong><p>'+esc(fmt(s.completedAt))+' · '+s.minutes+' min</p></div>'+textButton('commute-view-report','View report','btn-light btn-sm','data-id="'+esc(s.id)+'"')+'</div>';}).join('')+'</section>':'')+'</div>';
+  }
+  function renderCommuteSession(){
+    var session=M.active(state);if(!session)return renderCommuteReport();
+    if(M.remaining(session)<=0){M.end(state,session);commuteResultId=session.id;persist();return renderCommuteReport();}
+    var q=M.currentQuestion(state,session),course=state.courses.find(function(c){return c.id===session.courseId;});
+    if(!q)return '<div class="commute-page">'+empty('warning','Question was removed','Skip this card or end your review.',textButton('commute-skip','Skip unavailable card','btn-light')+' '+textButton('commute-finish','Finish','btn-mint'))+'</div>';
+    var text=M.speechText(q),isSaved=M.saved(state,q.id),idx=session.index+1,percent=Math.round((idx-1)/session.questionIds.length*100);
+    return '<div class="commute-page commute-active"><div class="commute-toolbar">'+textButton('commute-back',ico('back')+' Back','btn-light btn-sm')+'<span class="tag">'+idx+' of '+session.questionIds.length+'</span><span class="tag">'+esc(course?course.name:'Course')+'</span><span class="commute-clock" aria-label="Time remaining" id="commute-remaining">'+timeLabel(M.remaining(session))+'</span></div><div class="quiz-progress"><div style="width:'+percent+'%"></div></div>'+
+      '<section class="commute-listen-card"><div class="commute-label">LISTEN &amp; RECALL · SELF-GRADED</div><h1>'+esc(text.question)+'</h1><p class="commute-help">Think about the answer before revealing it. You can always read instead of listening.</p><div class="commute-audio-controls">'+textButton('commute-play',ico('spark')+' Play question + answer','btn-mint')+' '+textButton('commute-stop','Stop audio','btn-light')+'</div><p class="hint" role="status" id="commute-voice-status">'+(speaker.available()?'Voice available · pauses 5 seconds before reading the answer.':'Voice unavailable in this browser · reading mode is fully available.')+'</p><div class="commute-answer" id="commute-answer">'+(session.revealed?'<p class="commute-label">SOURCE / REFERENCE ANSWER</p><strong>'+esc(q.answer)+'</strong><p>'+esc(q.sourceExcerpt||q.explanation||'Answer provided by the question author.')+'</p>'+(q.sourcePage?'<span class="tag">Lecture page '+esc(q.sourcePage)+'</span>':''):'<div class="commute-hidden">Answer hidden until you reveal it.</div>')+'</div>'+
+      '<div class="commute-card-actions">'+textButton('commute-reveal',session.revealed?'Answer revealed':'Reveal answer','btn-light',session.revealed?'disabled':'')+' '+textButton('commute-save',isSaved?'★ Saved for review':'☆ Save difficult question','btn-light')+'</div>'+
+      '<div class="commute-grade">'+(session.revealed?'<p>How well did you recall it? <small>Self-reported, not an exam grade.</small></p><div class="split-actions">'+textButton('commute-grade','Review again','btn-danger','data-rating="again"')+textButton('commute-grade','Got it! '+ico('check'),'btn-mint','data-rating="gotit"')+'</div>':'<p>Reveal the answer to rate your recall.</p>')+textButton('commute-skip','Skip this card','btn-light btn-sm')+'</div></section>'+
+      '<div class="commute-disclaimer">Source: '+esc(q.sourcePage?'page '+q.sourcePage+' of your lecture':q.origin==='demo'?'original demo notes':q.origin==='manual'?'your manually created question':'your uploaded course material')+'. No generated explanations beyond the stored source.</div></div>';
+  }
+  function renderCommuteReport(){
+    var sess=M.ensure(state).sessions.find(function(s){return s.id===commuteResultId;})||M.ensure(state).sessions.find(function(s){return !!s.completedAt;});
+    if(!sess)return renderCommuteHome();var st=M.stats(sess);
+    return '<div class="commute-page">'+pageTitle('Your commute review','Session saved','A record of what you practiced, not a predicted exam grade.')+'<section class="card commute-report"><span class="tag tag-mint">SESSION COMPLETE</span><h2>'+st.reviewed+' concepts reviewed</h2><div class="commute-results"><div><strong>'+st.gotit+'</strong><span>Got it</span></div><div><strong>'+st.again+'</strong><span>Review again</span></div><div><strong>'+st.skipped+'</strong><span>Skipped</span></div></div><p class="hint">Difficult questions are kept in your saved review list. Commute self-ratings do not change your automatically graded exam accuracy.</p>'+textButton('commute-again','Start another commute','btn-mint')+' '+textButton('navigate','Back to dashboard','btn-light','data-id="dashboard"')+'</section></div>';
+  }
+  function commuteAction(a,d){
+    var session=M.active(state);
+    if(a==='commute-demo'){var cid=C.addDemo(state);commuteCourseId=cid;persist();if(!session){try{M.begin(state,cid,5);persist();goto('commute-session');}catch(e){toast(e.message,true);}}else goto('commute');return;}
+    if(a==='commute-resume'){goto('commute-session');return;}
+    if(a==='commute-back'){goto('commute');return;}
+    if(a==='commute-again'){goto('commute');return;}
+    if(a==='commute-view-report'){commuteResultId=d.id;goto('commute-report');return;}
+    if(a==='commute-finish'){if(session){speaker.stop();M.end(state,session);commuteResultId=session.id;persist();goto('commute-report');}return;}
+    if(!session)return;
+    var q=M.currentQuestion(state,session);
+    if(a==='commute-stop'){speaker.stop();var status=el('commute-voice-status');if(status)status.textContent='Audio stopped. Read the card or play again.';return;}
+    if(a==='commute-play'){
+      if(!q){toast('This question is unavailable.',true);return;}
+      var spoken=M.speechText(q);
+      speaker.speak(spoken.question,spoken.answer,1,5,function(){if(M.active(state)===session&&!session.revealed){M.reveal(session);persist();render();}},function(){toast('Speech unavailable. You can read the answer instead.',true);});
+      var status=el('commute-voice-status');if(status)status.textContent='Listening: question, thinking pause, then stored answer. Keep the tab open.';
+      return;
+    }
+    if(a==='commute-reveal'){speaker.stop();M.reveal(session);persist();render();return;}
+    if(a==='commute-save'){if(q){var v=M.toggleSaved(state,q.id);persist();render();toast(v?'Saved for a later review.':'Removed from saved questions.');}return;}
+    if(a==='commute-skip'||a==='commute-grade'){
+      speaker.stop();var rating=a==='commute-skip'?'skip':d.rating;
+      if(M.advance(state,session,rating)){persist();if(session.completedAt){commuteResultId=session.id;goto('commute-report');}else render();}
+      return;
+    }
+  }
+  setInterval(function(){if(ui.page!=='commute-session')return;var s=M.active(state);if(!s)return;
+    var remaining=M.remaining(s);if(remaining<=0){speaker.stop();M.end(state,s);commuteResultId=s.id;persist();goto('commute-report');return;}
+    var timer=el('commute-remaining');if(timer)timer.textContent=timeLabel(remaining);
+  },1000);
+  function render(){renderShell();var html=ui.page==='commute'?renderCommuteHome():ui.page==='commute-session'?renderCommuteSession():ui.page==='commute-report'?renderCommuteReport():ui.page==='guide'?globalThis.SyllaGuide.renderHome():ui.page==='guide-session'?globalThis.SyllaGuide.renderSession():ui.page==='dashboard'?renderDashboard():ui.page==='courses'?renderCourses():ui.page==='course'?renderCourse():ui.page==='exam'?renderExamSetup():ui.page==='quiz'?renderQuiz():ui.page==='results'?renderResults():renderWeak();el('content').innerHTML=html;}
   function openDialog(title,html){var d=el('app-modal');d.innerHTML='<div class="modal-inner"><div class="modal-heading"><h2>'+title+'</h2><button type="button" class="icon-button" data-action="close-modal" aria-label="Close dialog">'+ico('close')+'</button></div>'+html+'</div>';if(!d.open)d.showModal();var first=d.querySelector('input,select,textarea,button');if(first)first.focus();}
   function closeDialog(){var d=el('app-modal');if(d.open)d.close();}
   function formFooter(submit){return '<div class="modal-footer"><button type="button" class="btn btn-light" data-action="close-modal">Cancel</button><button type="submit" class="btn btn-mint">'+esc(submit)+'</button></div>';}
@@ -132,6 +193,7 @@
     z.index++;z.choice='';z.confidence='';z.revealed=false;z.answered=false;z.lastAttempt=null;render();}
   function confirmDelete(message){return window.confirm(message);}
   function action(a,d){
+    if(a.startsWith('commute-')){commuteAction(a,d);return;}
     if(a.startsWith('guide-')){globalThis.SyllaGuide.act(a,d);return;}
     if(a==='navigate'){goto(d.id);return;}
     if(a==='new-course'){ui.importAfterCreate=false;courseDialog();return;}
@@ -177,6 +239,8 @@
     }
     if(t.id==='topic-filter'){ui.topicFilter=t.value;render();}
     if(t.id==='weak-course'){ui.weakFilter=t.value;render();}
+    if(t.id==='commute-course'){commuteCourseId=t.value;render();}
+    if(t.id==='commute-minutes'){commuteMinutes=Number(t.value);render();}
     if(t.id==='exam-course'){ui.setupCourseId=t.value;render();}
     if(t.id==='exam-mode'){ui.setupMode=t.value;render();}
     if(t.id==='question-type'){var mcq=t.value==='mcq';el('mcq-fields').classList.toggle('hidden',!mcq);el('short-answer-fields').classList.toggle('hidden',mcq);}
@@ -202,6 +266,12 @@
         var current=state.questions.find(function(x){return x.id===questionId;});var fields={courseId:courseId,topicId:String(form.get('topicId')||''),type:type,prompt:prompt,options:options,answer:answer,explanation:String(form.get('explanation')||'').trim(),sourceExcerpt:String(form.get('sourceExcerpt')||'').trim(),origin:'manual'};
         if(current){Object.assign(current,fields);}else{state.questions.push(Object.assign({id:C.uid('q'),sourceId:'',isDemo:false,createdAt:new Date().toISOString()},fields));}
         persist();closeDialog();toast(current?'Question updated.':'Question added.');render();return;
+      }
+      if(kind==='commute-start'){
+        var cc=String(form.get('courseId')||''),minutes=Number(form.get('minutes')||10);
+        commuteCourseId=cc;commuteMinutes=minutes;
+        var sess=M.begin(state,cc,minutes);if(!persist()){M.ensure(state).sessions=M.ensure(state).sessions.filter(function(s){return s.id!==sess.id;});return;}
+        goto('commute-session');return;
       }
       if(kind==='quiz-start'){var cid=String(form.get('courseId')||''),mode=String(form.get('mode')||'all');startQuiz(cid,Number(form.get('count')||5),mode);return;}
       if(kind==='import'){var file=form.get('backup');if(!file||!file.size)throw new Error('Choose a JSON backup first.');if(file.size>5000000)throw new Error('Choose a backup smaller than 5 MB.');
