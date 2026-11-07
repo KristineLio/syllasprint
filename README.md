@@ -70,6 +70,19 @@ The **Study Mode** navigation item is available on desktop and mobile. Each save
 **Transparency:** The site is not an AI tutor. It does not autonomously explain new concepts, grade essays, execute Python, or guarantee that a generated recall prompt is pedagogically correct. Multiple-choice questions are checked automatically; open responses and code-reasoning tasks use source excerpts and transparent self-grading. Review generated questions for quality.
 
 Run `python tests/guided_mode.py` (Chromium + Playwright required) to smoke-test all five stages, persistence and the report. Browser-local storage can still be lost if site data is cleared; back it up regularly.
+
 ### Saved answers (V2.3)
 
 Guided Study saves written drafts as you type, retains multiple-choice selections and confidence levels, records optional Understand-stage reflections, and displays a **My saved answers** journal in the session and completion report. Browser-local data can be deleted by browser clearing: export JSON for backup.
+
+## Commute Mode (V2.4)
+
+Short, source-linked **Listen & Recall** sessions for 5, 10, or 15 minutes (maximum 6, 12, or 18 cards respectively). Question priority: unresolved incorrectly answered questions, your saved difficult questions, then remaining course questions. An original networking sample is available with one click.
+
+- Listen to a spoken question with the browser's built-in Web Speech API, think for 5 seconds, then hear the stored source/reference answer. **All text is visible as an accessible fallback.** You may reveal answers without audio.
+- Tap **Got it** or **Review again** to save a *self-reported* review. These ratings do not modify automatically graded exam accuracy. Questions marked difficult are saved in your local review list.
+- Sessions have a wall-clock limit and survive refresh. If the session time expires, an honest review report appears; unreviewed questions are not counted as completed.
+- Commute history and saved cards are included in the same version-1 JSON backup, and old backups import without resetting their courses or exam data.
+- No account, microphone, AI API, sound files, or network connection needed for quiz/review itself. Browser-provided speech voices may require an OS/browser voice download. Playback while the screen is locked or the tab is backgrounded is not guaranteed; **do not use while driving or where attention to surroundings is required.**
+
+Run `node tests/commute.test.cjs` and `python tests/commute_browser.py`. Verify voice output on your target phone; automated tests check controls and no-audio fallbacks, not audible speaker output.
